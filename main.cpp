@@ -17,4 +17,7 @@
 int main(int argc,char **argv){
     std::cout << "Hello world \n";
     Clipper a;
+    Eigen::Matrix4f b;
+    b.setIdentity();
+    Frustum c(b,45,45,1,5);
 }

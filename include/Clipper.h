@@ -6,8 +6,8 @@
 class Clipper {
     public:
         Clipper();
-    
-    int a;
+
+        Eigen::Vector3f line_plane(Eigen::Vector4f _plane, Eigen::Vector3f _line, Eigen::Vector3f _lineOrigin);
 };
 
 #include <Clipper.inl>
