@@ -7,7 +7,7 @@ class Clipper {
     public:
         Clipper();
 
-        Eigen::Vector3f line_plane(Eigen::Vector4f _plane, Eigen::Vector3f _line, Eigen::Vector3f _lineOrigin);
+        bool clipLinePlane(Eigen::Vector3f _planeNormal, Eigen::Vector3f _planeOrig, Eigen::Vector3f _ray, Eigen::Vector3f _rayOrigin, Eigen::Vector3f &_output);
 };
 
 #include <Clipper.inl>

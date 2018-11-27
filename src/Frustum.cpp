@@ -40,10 +40,12 @@ struct Frustum
 		// Far plane eq
 		mFplane.block(0, 0, 3, 1).matrix() = (mFpBotLeft - mFpBotRight).cross(mFpTopRight - mFpBotRight);
 		mFplane(3) = -mFpCenter.dot(mFplane.block(0, 0, 3, 1));
+		mFplane.normalize();
 
 		// Near plane eq
 		mNplane.block(0, 0, 3, 1).matrix() = (mNpBotLeft - mNpBotRight).cross(mNpTopRight - mNpBotRight);
-		mFplane(3) = -mNpCenter.dot(mNplane.block(0, 0, 3, 1));
+		mNplane(3) = -mNpCenter.dot(mNplane.block(0, 0, 3, 1));
+		mNplane.normalize();
 
 		// Near plane eq
 		Eigen::Vector3f q,v;
@@ -61,8 +63,10 @@ struct Frustum
 		mNpNormal = p.cross(u);
 		mNpNormal.normalize();
 
-		std::cout << "Plane vector3f: " << mNpNormal << "\n";
-		std::cout << "Plane vector4f: " << mNplane << "\n";
+		std::cout << "Near plane vector3f: " << mNpNormal << "\n";
+		std::cout << "Near plane vector4f: " << mNplane << "\n";
+		std::cout << "Far plane vector3f: " << mFpNormal << "\n";
+		std::cout << "Far plane vector4f: " << mFplane << "\n";
 	}
 
 	// Frustum pose
