@@ -17,10 +17,9 @@
 #include <pcl/console/parse.h>
 #include <pcl/filters/frustum_culling.h>
 
-#include "include/Clipper.h"
-#include "include/Drawer.h"
-#include "src/Frustum.cpp"
-#include "src/Drawer.cpp"
+#include "Clipper.h"
+#include "Drawer.h"
+#include "Frustum.h"
 
 int main(int argc, char **argv)
 {
@@ -29,7 +28,7 @@ int main(int argc, char **argv)
     Clipper a;
     Eigen::Matrix4f b;
     b.setIdentity();
-    Frustum c(b, 45, 45, 1, 5);
+    std::shared_ptr<Frustum> f1(new Frustum(b, 45, 45, 1, 5));
     bool end = true;
     while (end)
     {

@@ -8,6 +8,8 @@
 #include <chrono>
 #include <thread>
 
+#include "Frustum.h"
+
 template <typename PointType_>
 class Drawer
 {
@@ -17,13 +19,16 @@ public:
   {
     return mSingleton;
   }
+
+  void frustum(int id, std::shared_ptr<Frustum>_frustum);
+  void line();
   void spinOnce();
 
 private:
   Drawer();
 
   void keycallback(const pcl::visualization::KeyboardEvent &_event, void *_data);
-
+  PointType_ eigenVector3fToPcl(Eigen::Vector3f _vec);
 private:
   boost::shared_ptr<pcl::visualization::PCLVisualizer> mViewer;
   bool mPause = false;

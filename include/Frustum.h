@@ -1,4 +1,5 @@
-
+#ifndef FRUSTUM_H_
+#define FRUSTUM_H_
 #include <Eigen/Eigen>
 
 struct Frustum
@@ -102,3 +103,5 @@ struct Frustum
 	Eigen::Vector3f mNpNormal;
 	Eigen::Vector4f mNplane;
 };
+
+#endif

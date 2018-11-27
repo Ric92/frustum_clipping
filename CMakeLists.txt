@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
 
 project(object_clipping)
 
@@ -22,8 +22,9 @@ add_definitions(${PCL_DEFINITIONS})
 include_directories(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_SOURCE_DIR}/src)
 
+file(GLOB SOURCES "src/*.cpp")
+add_executable (object_clipping src/main.cpp ${SOURCES})
 
-add_executable (object_clipping main.cpp)
 target_link_libraries (object_clipping ${EIGEN3_LIBRARIES})
 target_link_libraries (object_clipping ${OpenCV_LIBRARIES})
 target_link_libraries (object_clipping ${PCL_LIBRARIES})
