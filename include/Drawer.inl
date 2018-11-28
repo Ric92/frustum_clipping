@@ -1,8 +1,8 @@
 #include <iostream>
 #include <opencv2/core/eigen.hpp>
 #include <pcl/io/pcd_io.h>
+#include <pcl/geometry/planar_polygon.h>
 #include <pcl/visualization/pcl_visualizer.h>
-
 
 template <typename PointType_>
 inline Drawer<PointType_>::Drawer()
@@ -52,7 +52,7 @@ inline void Drawer<PointType_>::line()
 }
 //---------------------------------------------------------------------------------------------------------------------
 template <typename PointType_>
-inline void Drawer<PointType_>::frustum(int id, std::shared_ptr<Frustum>_frustum)
+inline void Drawer<PointType_>::frustum(int id, std::shared_ptr<Frustum> _frustum)
 {
     auto position = eigenVector3fToPcl(_frustum->mPosition);
     auto ftl = eigenVector3fToPcl(_frustum->mFpTopLeft);
@@ -81,6 +81,7 @@ inline void Drawer<PointType_>::frustum(int id, std::shared_ptr<Frustum>_frustum
     mViewer->addLine(ntl, nbl, 1.0, 0.0, 0.0, "ntl_nbl" + std::to_string(id));
     mViewer->addLine(nbr, ntr, 1.0, 0.0, 0.0, "nbr_ntr" + std::to_string(id));
     mViewer->addLine(nbr, nbl, 1.0, 0.0, 0.0, "nbr_nbl" + std::to_string(id));
+    mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------
 template <typename PointType_>
@@ -91,4 +92,28 @@ inline PointType_ Drawer<PointType_>::eigenVector3fToPcl(Eigen::Vector3f _vec)
     output.y = _vec[1];
     output.z = _vec[2];
     return output;
+}
+//---------------------------------------------------------------------------------------------------------------------
+template <typename PointType_>
+inline void Drawer<PointType_>::plane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points)
+{
+
+    pcl::ModelCoefficients coefficients;
+    coefficients.values.resize(4); // We need 4 values
+    coefficients.values[0] = _plane[0];
+    coefficients.values[1] = _plane[1];
+    coefficients.values[2] = _plane[2];
+    coefficients.values[3] = _plane[3];
+    // double x = _orig[0];
+    // double y = _orig[1];
+    // double z = _orig[2];
+    // mViewer->addPlane(coefficients,x,y,z,"plane" + std::to_string(id),0);
+    pcl::PointCloud<pcl::PointXYZRGB> planePoints;
+    for(auto point: _points){
+        planePoints.push_back(eigenVector3fToPcl(point));
+    }
+    pcl::PlanarPolygon<pcl::PointXYZRGB> poly;//(planePoints,coefficients);
+    poly.setContour(planePoints);
+    mViewer->addPolygon(poly,255,0,0,"Poligon"+std::to_string(id),0);
+    mViewer->spinOnce();
 }
