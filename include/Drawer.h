@@ -24,6 +24,7 @@ public:
   void line();
   void spinOnce();
   void plane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points);
+  void meshPlane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points);
 
 private:
   Drawer();
