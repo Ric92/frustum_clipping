@@ -20,11 +20,12 @@ public:
     return mSingleton;
   }
 
-  void frustum(int id, std::shared_ptr<Frustum>_frustum);
-  void line();
-  void spinOnce();
+  void frustum(std::shared_ptr<Frustum>_frustum);
+
+  void line(std::pair<Eigen::Vector3f,Eigen::Vector3f> _line, std::string _id);
   void plane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points);
   void meshPlane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points);
+  void spinOnce();
 
 private:
   Drawer();

@@ -28,8 +28,8 @@ int main(int argc, char **argv)
     Clipper a;
     Eigen::Matrix4f b;
     b.setIdentity();
-    std::shared_ptr<Frustum> f1(new Frustum(b, 45, 45, 1, 5));
-    draw->frustum(1,f1);
+    std::shared_ptr<Frustum> f1(new Frustum(1,b, 45, 45, 1, 5));
+    draw->frustum(f1);
     
     bool end = true;
     while (end)

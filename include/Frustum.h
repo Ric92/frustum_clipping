@@ -1,14 +1,16 @@
 #ifndef FRUSTUM_H_
 #define FRUSTUM_H_
 #include <Eigen/Eigen>
+#include <utility>
 
 struct Frustum
 {
 	// _pose: Pose of Frustum
 	// _hfov,_vfov: Vertical and horizontal FOV in degrees
 	// _npDistance,fpDistance: Distance between pose and nearest and farest plane
-	Frustum(Eigen::Matrix4f _pose, float _hfov, float _vfov, float _npDistance, float _fpDistance)
+	Frustum(int _id, Eigen::Matrix4f _pose, float _hfov, float _vfov, float _npDistance, float _fpDistance)
 	{
+		id = _id;
 		mPose = _pose;
 		mHFov = float(_vfov * M_PI / 180); // degrees to radians
 		mVFov = float(_hfov * M_PI / 180); // degrees to radians
@@ -26,6 +28,7 @@ struct Frustum
 		mFp_height = float(2 * tan(mVFov / 2) * mFpDistance);
 		mFp_width = float(2 * tan(mHFov / 2) * mFpDistance);
 
+		// 8 points of frustum
 		mFpCenter = mPosition + view * mFpDistance;								   // far plane center
 		mFpTopLeft = mFpCenter + (up * mFp_height / 2) - (right * mFp_width / 2);  // Top left corner of the far plane
 		mFpTopRight = mFpCenter + (up * mFp_height / 2) + (right * mFp_width / 2); // Top right corner of the far plane
@@ -38,37 +41,59 @@ struct Frustum
 		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);  // Bottom left corner of the near plane
 		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2); // Bottom right corner of the near plane
 
-		// Far plane eq
-		mFplane.block(0, 0, 3, 1).matrix() = (mFpBotLeft - mFpBotRight).cross(mFpTopRight - mFpBotRight);
-		mFplane(3) = -mFpCenter.dot(mFplane.block(0, 0, 3, 1));
-		mFplane.normalize();
+		// Plane eq: Ax + By + Cz + D = 0
+		// Far plane
+		mFplaneNormal = mFpCenter - mNpCenter;
+		mFplaneNormal.normalize();
+		mFplane.head(3) = mFplaneNormal;
+		mFplane[3] = _fpDistance;
 
-		// Near plane eq
-		mNplane.block(0, 0, 3, 1).matrix() = (mNpBotLeft - mNpBotRight).cross(mNpTopRight - mNpBotRight);
-		mNplane(3) = -mNpCenter.dot(mNplane.block(0, 0, 3, 1));
-		mNplane.normalize();
+		// Near plane
+		mNplaneNormal = mNpCenter - mFpCenter;
+		mNplaneNormal.normalize();
+		mNplane.head(3) = mNplaneNormal;
+		mNplane[3] = _npDistance;
 
-		// Near plane eq
-		Eigen::Vector3f q,v;
-		q[0] =  mFpTopLeft[0] - mFpTopRight[0]; v[0] =  mFpTopLeft[0] - mFpBotLeft[0];
-		q[1] =  mFpTopLeft[1] - mFpTopRight[1]; v[1] =  mFpTopLeft[1] - mFpBotLeft[1];
-		q[2] =  mFpTopLeft[2] - mFpTopRight[2]; v[2] =  mFpTopLeft[2] - mFpBotLeft[2];
-		mFpNormal = q.cross(v);
-		mFpNormal.normalize();
+		// Up plane
+		mUpPlaneNormal = (mNpTopLeft - mFpTopLeft).cross(mNpTopRight - mFpTopLeft);
+		mUpPlaneNormal.normalize();
+		mUpPlane.head(3) = mUpPlaneNormal;
 
-		// Near plane eq
-		Eigen::Vector3f p,u;
-		p[0] =  mNpTopLeft[0] - mNpTopRight[0]; u[0] =  mNpTopLeft[0] - mNpBotLeft[0];
-		p[1] =  mNpTopLeft[1] - mNpTopRight[1]; u[1] =  mNpTopLeft[1] - mNpBotLeft[1];
-		p[2] =  mNpTopLeft[2] - mNpTopRight[2]; u[2] =  mNpTopLeft[2] - mNpBotLeft[2];
-		mNpNormal = p.cross(u);
-		mNpNormal.normalize();
+		// Down plane
+		mDownPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpBotRight - mFpBotLeft);
+		mDownPlaneNormal.normalize();
+		mDownPlane = -mUpPlane;
 
-		std::cout << "Near plane vector3f: " << mNpNormal << "\n";
-		std::cout << "Near plane vector4f: " << mNplane << "\n";
-		std::cout << "Far plane vector3f: " << mFpNormal << "\n";
-		std::cout << "Far plane vector4f: " << mFplane << "\n";
+		// Right plane
+		mRightPlaneNormal = -(mNpBotRight - mFpBotRight).cross(mNpTopRight - mFpBotRight);
+		mRightPlaneNormal.normalize();
+		mRightPlane.head(3) = mRightPlaneNormal;
+
+		// Left plane
+		mLeftPlaneNormal = -mRightPlaneNormal;
+		mLeftPlaneNormal.normalize();
+		mLeftPlane = -mRightPlane;
+
+		// Near plane edges
+		mEdges.push_back(std::make_pair(mNpBotLeft, mNpTopLeft));
+		mEdges.push_back(std::make_pair(mNpTopLeft, mNpTopRight));
+		mEdges.push_back(std::make_pair(mNpTopRight, mNpBotRight));
+		mEdges.push_back(std::make_pair(mNpBotRight, mNpBotLeft));
+
+		// Far plane edges
+		mEdges.push_back(std::make_pair(mFpBotLeft, mFpTopLeft));
+		mEdges.push_back(std::make_pair(mFpTopLeft, mFpTopRight));
+		mEdges.push_back(std::make_pair(mFpTopRight, mFpBotRight));
+		mEdges.push_back(std::make_pair(mFpBotRight, mFpBotLeft));
+
+		// Connecting corners edges
+		mEdges.push_back(std::make_pair(mNpBotLeft, mFpBotLeft));
+		mEdges.push_back(std::make_pair(mNpTopLeft, mFpTopLeft));
+		mEdges.push_back(std::make_pair(mNpTopRight, mFpTopRight));
+		mEdges.push_back(std::make_pair(mNpBotRight, mFpBotRight));
 	}
+
+	int id;
 
 	// Frustum pose
 	Eigen::Matrix4f mPose;
@@ -81,6 +106,9 @@ struct Frustum
 	float mNpDistance;
 	float mFpDistance;
 
+	// Edges
+	std::vector<std::pair<Eigen::Vector3f, Eigen::Vector3f>> mEdges;
+
 	// Far plane
 	float mFp_height;
 	float mFp_width;
@@ -89,8 +117,8 @@ struct Frustum
 	Eigen::Vector3f mFpTopRight;
 	Eigen::Vector3f mFpBotLeft;
 	Eigen::Vector3f mFpBotRight;
-	Eigen::Vector3f mFpNormal;
 	Eigen::Vector4f mFplane;
+	Eigen::Vector3f mFplaneNormal;
 
 	// Near plane
 	float mNp_height;
@@ -100,8 +128,26 @@ struct Frustum
 	Eigen::Vector3f mNpTopRight;
 	Eigen::Vector3f mNpBotLeft;
 	Eigen::Vector3f mNpBotRight;
-	Eigen::Vector3f mNpNormal;
 	Eigen::Vector4f mNplane;
+	Eigen::Vector3f mNplaneNormal;
+
+	// Up plane
+	Eigen::Vector4f mUpPlane;
+	Eigen::Vector3f mUpPlaneNormal;
+
+	// Down plane
+	Eigen::Vector4f mDownPlane;
+	Eigen::Vector3f mDownPlaneNormal;
+
+	// Right plane
+	Eigen::Vector4f mRightPlane;
+	Eigen::Vector3f mRightPlaneNormal;
+
+	// Left plane
+	Eigen::Vector4f mLeftPlane;
+	Eigen::Vector3f mLeftPlaneNormal;
+
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 #endif
