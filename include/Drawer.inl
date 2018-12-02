@@ -73,27 +73,32 @@ inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
                                  _frustum->mPosition[2], "Frustum_" + std::to_string(_frustum->id));
 
     // Draw edges
-    for (auto facets : _frustum->mFacets)
+    for (auto facet : _frustum->mFacets)
     {
-        std::string facetId = "Frustum_" + std::to_string(_frustum->id) + "_facet_" + facets.first;
-        line(std::make_pair(facets.second->vertex[0], facets.second->vertex[1]), facetId + std::to_string(0));
-        line(std::make_pair(facets.second->vertex[1], facets.second->vertex[2]), facetId + std::to_string(1));
-        line(std::make_pair(facets.second->vertex[2], facets.second->vertex[3]), facetId + std::to_string(2));
-        line(std::make_pair(facets.second->vertex[3], facets.second->vertex[0]), facetId + std::to_string(3));
+        std::string facetId = "Frustum_" + std::to_string(_frustum->id) + "_facet_" + facet.first;
+        line(std::make_pair(facet.second->vertex[0], facet.second->vertex[1]), facetId + std::to_string(0));
+        line(std::make_pair(facet.second->vertex[1], facet.second->vertex[2]), facetId + std::to_string(1));
+        line(std::make_pair(facet.second->vertex[2], facet.second->vertex[3]), facetId + std::to_string(2));
+        line(std::make_pair(facet.second->vertex[3], facet.second->vertex[0]), facetId + std::to_string(3));
+        std::cout << "Facet " + facet.first <<" plane= " << facet.second->plane << "\n";
     }
 
     // Draw plane normals
     Eigen::Vector3f up;
     up = _frustum->mUpPlaneNormal;
+    Eigen::Vector3f down;
+    down = _frustum->mDownPlaneNormal;
     Eigen::Vector3f right;
     right = _frustum->mRightPlaneNormal;
+    Eigen::Vector3f left;
+    left = _frustum->mLeftPlaneNormal;
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft + up),
                      1.0, 0.0, 0.0, "up_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight), eigenVector3fToPcl(_frustum->mFpBotRight - up),
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight), eigenVector3fToPcl(_frustum->mFpBotRight + down),
                      1.0, 0.0, 0.0, "down_" + std::to_string(_frustum->id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopRight), eigenVector3fToPcl(_frustum->mFpTopRight + right),
                      0.0, 0.0, 1.0, "right_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft - right),
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft +left),
                      0.0, 0.0, 1.0, "left_" + std::to_string(_frustum->id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpCenter), eigenVector3fToPcl(_frustum->mFpCenter + _frustum->mFplaneNormal),
                      0.0, 1.0, 0.0, "far_" + std::to_string(_frustum->id));

@@ -35,10 +35,23 @@ int main(int argc, char **argv)
     draw->frustum(f1);
 
     //First test
-    Eigen::Vector3f v1(2, 0, 2);
+    Eigen::Vector3f v1(2, 0, 2);     //Right-Left line 
     Eigen::Vector3f v2(4, 1, -2);
+
     draw->line(std::make_pair(v2, v1), "randomline");
-    a.clipSegmentFrustum(f1, std::make_pair(v2, v1));
+    a.clipSegmentFrustum(f1, std::make_pair(v2, v1),"randomline");
+
+    Eigen::Vector3f v3(2, 0, 2);        // Right-up line
+    Eigen::Vector3f v4(4, 4, -2);
+
+    draw->line(std::make_pair(v3, v4), "randomline2");
+    a.clipSegmentFrustum(f1, std::make_pair(v3, v4),"randomline2");
+
+    Eigen::Vector3f v5(4, 1, -2);        // Right-up line
+    Eigen::Vector3f v6(4, 4, -2);
+
+    draw->line(std::make_pair(v5, v6), "randomline3");
+    a.clipSegmentFrustum(f1, std::make_pair(v5, v6),"randomline3");
 
     bool end = true;
     while (end)
