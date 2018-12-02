@@ -47,32 +47,47 @@ struct Frustum
 		mFplaneNormal.normalize();
 		mFplane.head(3) = mFplaneNormal;
 		mFplane[3] = _fpDistance;
-
+		mPlanes.push_back(std::make_pair(mFpCenter,  mFplane));
+		// std::cout << "Far Plane " << mFplane << "\n";
 		// Near plane
 		mNplaneNormal = mNpCenter - mFpCenter;
 		mNplaneNormal.normalize();
 		mNplane.head(3) = mNplaneNormal;
 		mNplane[3] = _npDistance;
+		mPlanes.push_back(std::make_pair(mNpCenter,mNplane));
+		// std::cout << "Near Plane " << mNplane << "\n";
 
 		// Up plane
 		mUpPlaneNormal = (mNpTopLeft - mFpTopLeft).cross(mNpTopRight - mFpTopLeft);
 		mUpPlaneNormal.normalize();
 		mUpPlane.head(3) = mUpPlaneNormal;
+		mUpPlane[3] = 0;
+		mPlanes.push_back(std::make_pair(mNpTopLeft,mUpPlane));
+		// std::cout << "Up Plane " << mUpPlane << "\n";
 
 		// Down plane
 		mDownPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpBotRight - mFpBotLeft);
 		mDownPlaneNormal.normalize();
-		mDownPlane = -mUpPlane;
+		mDownPlane.head(3) = mDownPlaneNormal;
+		mDownPlane[3] = 0;
+		mPlanes.push_back(std::make_pair(mNpBotLeft,mDownPlane));
+		// std::cout << "Down Plane " << mDownPlane << "\n";
 
 		// Right plane
 		mRightPlaneNormal = -(mNpBotRight - mFpBotRight).cross(mNpTopRight - mFpBotRight);
 		mRightPlaneNormal.normalize();
 		mRightPlane.head(3) = mRightPlaneNormal;
+		mRightPlane[3] = 0;
+		mPlanes.push_back(std::make_pair(mNpBotRight,mRightPlane));
+		// std::cout << "Right Plane " << mRightPlane << "\n";
 
 		// Left plane
-		mLeftPlaneNormal = -mRightPlaneNormal;
+		mLeftPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpTopLeft - mFpBotLeft);
 		mLeftPlaneNormal.normalize();
-		mLeftPlane = -mRightPlane;
+		mLeftPlane.head(3) = mLeftPlaneNormal;
+		mLeftPlane[3] = 0;
+		mPlanes.push_back(std::make_pair(mNpTopLeft,mLeftPlane));
+		// std::cout << "Left Plane " << mLeftPlane << "\n";
 
 		// Near plane edges
 		mEdges.push_back(std::make_pair(mNpBotLeft, mNpTopLeft));
@@ -108,6 +123,9 @@ struct Frustum
 
 	// Edges
 	std::vector<std::pair<Eigen::Vector3f, Eigen::Vector3f>> mEdges;
+
+	// Planes
+	std::vector<std::pair<Eigen::Vector3f,Eigen::Vector4f>> mPlanes;
 
 	// Far plane
 	float mFp_height;

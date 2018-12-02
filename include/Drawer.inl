@@ -53,14 +53,24 @@ inline void Drawer<PointType_>::line(std::pair<Eigen::Vector3f, Eigen::Vector3f>
     auto point1 = eigenVector3fToPcl(_line.first);
     auto point2 = eigenVector3fToPcl(_line.second);
     mViewer->addLine(point1, point2, 1.0, 0.0, 0.0, _id);
+    mViewer->spinOnce();
+}
+
+//---------------------------------------------------------------------------------------------------------------------
+template <typename PointType_>
+inline void Drawer<PointType_>::point(Eigen::Vector3f _point, std::string _id)
+{
+    auto point = eigenVector3fToPcl(_point);
+    mViewer->addSphere(point,0.1, 0.0, 0.0, 1.0, _id,0);
+    mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------
 template <typename PointType_>
 inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
 {
-    // Draw camera position
+    // Draw frustum pose
     mViewer->addCoordinateSystem(1.0, _frustum->mPosition[0], _frustum->mPosition[1],
-                                 _frustum->mPosition[2], "frustum" + std::to_string(_frustum->id));
+                                 _frustum->mPosition[2], "Frustum_" + std::to_string(_frustum->id));
 
     // Draw edges
     int i = 0;
@@ -70,18 +80,12 @@ inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
         line(edge, edgeId);
         i++;
     }
-    // Draw plane normal
-    //line(std::make_pair(_frustum->mUpPlaneNormal), "up_" + std::to_string(_frustum->id));
-    //Eigen::Transform<float,3,Eigen::Affine> t;
-    //t = Eigen::Translation3f(_frustum->mFpTopLeft);
+
+    // Draw plane normals
     Eigen::Vector3f up;
-    // up = _frustum->mUpPlane.head(3);
     up = _frustum->mUpPlaneNormal;
     Eigen::Vector3f right;
-    // right = _frustum->mRightPlane.head(3);
     right = _frustum->mRightPlaneNormal;
-
-
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft),eigenVector3fToPcl(_frustum->mFpTopLeft+ up),
                                             1.0, 0.0, 0.0, "up_" + std::to_string(_frustum->id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight),eigenVector3fToPcl(_frustum->mFpBotRight - up),

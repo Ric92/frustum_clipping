@@ -27,10 +27,19 @@ int main(int argc, char **argv)
     auto draw = Drawer<pcl::PointXYZRGB>::get();
     Clipper a;
     Eigen::Matrix4f b;
-    b.setIdentity();
-    std::shared_ptr<Frustum> f1(new Frustum(1,b, 45, 45, 1, 5));
+    b << 1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1;
+    std::shared_ptr<Frustum> f1(new Frustum(1, b, 45, 45, 1, 5));
     draw->frustum(f1);
-    
+
+    //First test
+    Eigen::Vector3f v1(0, 0, 0);
+    Eigen::Vector3f v2(8, 0, 0);
+    draw->line(std::make_pair(v2, v1), "randomline");
+    a.clipSegmentFrustum(f1, std::make_pair(v2, v1));
+
     bool end = true;
     while (end)
     {
