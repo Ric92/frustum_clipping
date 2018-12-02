@@ -4,6 +4,7 @@
 
 #include <Eigen/Eigen>
 #include "Frustum.h"
+#include "Facet.h"
 #include "Drawer.h"
 
 class Clipper {
@@ -11,8 +12,8 @@ class Clipper {
         Clipper();
         void clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared_ptr<Frustum> _frustum2,
                                  std::vector<Eigen::Vector3f> &_intersectionPoints);
-        bool clipSegmentPlane(Eigen::Vector4f _plane, Eigen::Vector3f _planeOrig , 
-                                std::pair<Eigen::Vector3f,Eigen::Vector3f> _segment, std::vector<Eigen::Vector3f> &_output);
+        bool clipSegmentPlane(std::shared_ptr<Facet> _facet, std::pair<Eigen::Vector3f,Eigen::Vector3f> _segment,
+                                 std::vector<Eigen::Vector3f> &_output);
         float distanceToPlane(Eigen::Vector4f _plane, Eigen::Vector3f _point);
         void clipSegmentFrustum(std::shared_ptr<Frustum> _frustum,std::pair<Eigen::Vector3f,Eigen::Vector3f> _segment);
 

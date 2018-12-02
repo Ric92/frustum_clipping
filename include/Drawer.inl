@@ -61,7 +61,7 @@ template <typename PointType_>
 inline void Drawer<PointType_>::point(Eigen::Vector3f _point, std::string _id)
 {
     auto point = eigenVector3fToPcl(_point);
-    mViewer->addSphere(point,0.1, 0.0, 0.0, 1.0, _id,0);
+    mViewer->addSphere(point, 0.05, 0.0, 0.0, 1.0, _id, 0);
     mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -73,12 +73,13 @@ inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
                                  _frustum->mPosition[2], "Frustum_" + std::to_string(_frustum->id));
 
     // Draw edges
-    int i = 0;
-    for (auto edge : _frustum->mEdges)
+    for (auto facets : _frustum->mFacets)
     {
-        std::string edgeId = "Frustum_" + std::to_string(_frustum->id) + "_edge_" + std::to_string(i);
-        line(edge, edgeId);
-        i++;
+        std::string facetId = "Frustum_" + std::to_string(_frustum->id) + "_facet_" + facets.first;
+        line(std::make_pair(facets.second->vertex[0], facets.second->vertex[1]), facetId + std::to_string(0));
+        line(std::make_pair(facets.second->vertex[1], facets.second->vertex[2]), facetId + std::to_string(1));
+        line(std::make_pair(facets.second->vertex[2], facets.second->vertex[3]), facetId + std::to_string(2));
+        line(std::make_pair(facets.second->vertex[3], facets.second->vertex[0]), facetId + std::to_string(3));
     }
 
     // Draw plane normals
@@ -86,18 +87,18 @@ inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
     up = _frustum->mUpPlaneNormal;
     Eigen::Vector3f right;
     right = _frustum->mRightPlaneNormal;
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft),eigenVector3fToPcl(_frustum->mFpTopLeft+ up),
-                                            1.0, 0.0, 0.0, "up_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight),eigenVector3fToPcl(_frustum->mFpBotRight - up),
-                                            1.0, 0.0, 0.0, "down_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopRight),eigenVector3fToPcl(_frustum->mFpTopRight+ right),
-                                            0.0, 0.0, 1.0, "right_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft),eigenVector3fToPcl(_frustum->mFpTopLeft - right),
-                                            0.0, 0.0, 1.0, "left_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpCenter),eigenVector3fToPcl(_frustum->mFpCenter+ _frustum->mFplaneNormal),
-                                            0.0, 1.0, 0.0, "far_" + std::to_string(_frustum->id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mNpCenter),eigenVector3fToPcl(_frustum->mNpCenter+ _frustum->mNplaneNormal),
-                                            0.0, 1.0, 0.0, "near_" + std::to_string(_frustum->id));                            
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft + up),
+                     1.0, 0.0, 0.0, "up_" + std::to_string(_frustum->id));
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight), eigenVector3fToPcl(_frustum->mFpBotRight - up),
+                     1.0, 0.0, 0.0, "down_" + std::to_string(_frustum->id));
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopRight), eigenVector3fToPcl(_frustum->mFpTopRight + right),
+                     0.0, 0.0, 1.0, "right_" + std::to_string(_frustum->id));
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft - right),
+                     0.0, 0.0, 1.0, "left_" + std::to_string(_frustum->id));
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpCenter), eigenVector3fToPcl(_frustum->mFpCenter + _frustum->mFplaneNormal),
+                     0.0, 1.0, 0.0, "far_" + std::to_string(_frustum->id));
+    mViewer->addLine(eigenVector3fToPcl(_frustum->mNpCenter), eigenVector3fToPcl(_frustum->mNpCenter + _frustum->mNplaneNormal),
+                     0.0, 1.0, 0.0, "near_" + std::to_string(_frustum->id));
     // std::vector<Eigen::Vector3f> farPlane;
     // farPlane.push_back(_frustum->mFpTopLeft);
     // farPlane.push_back(_frustum->mFpTopRight);

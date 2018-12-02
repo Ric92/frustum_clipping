@@ -2,6 +2,8 @@
 #define FRUSTUM_H_
 #include <Eigen/Eigen>
 #include <utility>
+#include "Facet.h"
+#include <unordered_map>
 
 struct Frustum
 {
@@ -18,9 +20,9 @@ struct Frustum
 		mNpDistance = _npDistance;
 		mFpDistance = _fpDistance;
 
-		Eigen::Vector3f view = mPose.block(0, 0, 3, 1);  // view vector for the camera  - first column of the rotation matrix
-		Eigen::Vector3f up = mPose.block(0, 1, 3, 1);	// up vector for the camera    - second column of the rotation matrix
-		Eigen::Vector3f right = mPose.block(0, 2, 3, 1); // right vector for the camera - third column of the rotation matrix
+		Eigen::Vector3f view = mPose.block(0, 0, 3, 1);  // view vector   
+		Eigen::Vector3f up = mPose.block(0, 1, 3, 1);	// up vector     
+		Eigen::Vector3f right = mPose.block(0, 2, 3, 1); // right vector 
 		mPosition = mPose.block(0, 3, 3, 1);			 // Frustum position
 
 		mNp_height = float(2 * tan(mVFov / 2) * mNpDistance);
@@ -28,18 +30,19 @@ struct Frustum
 		mFp_height = float(2 * tan(mVFov / 2) * mFpDistance);
 		mFp_width = float(2 * tan(mHFov / 2) * mFpDistance);
 
-		// 8 points of frustum
-		mFpCenter = mPosition + view * mFpDistance;								   // far plane center
-		mFpTopLeft = mFpCenter + (up * mFp_height / 2) - (right * mFp_width / 2);  // Top left corner of the far plane
-		mFpTopRight = mFpCenter + (up * mFp_height / 2) + (right * mFp_width / 2); // Top right corner of the far plane
-		mFpBotLeft = mFpCenter - (up * mFp_height / 2) - (right * mFp_width / 2);  // Bottom left corner of the far plane
-		mFpBotRight = mFpCenter - (up * mFp_height / 2) + (right * mFp_width / 2); // Bottom right corner of the far plane
+		// far plane
+		mFpCenter = mPosition + view * mFpDistance;								   
+		mFpTopLeft = mFpCenter + (up * mFp_height / 2) - (right * mFp_width / 2);  
+		mFpTopRight = mFpCenter + (up * mFp_height / 2) + (right * mFp_width / 2); 
+		mFpBotLeft = mFpCenter - (up * mFp_height / 2) - (right * mFp_width / 2);  
+		mFpBotRight = mFpCenter - (up * mFp_height / 2) + (right * mFp_width / 2); 
 
-		mNpCenter = mPosition + view * mNpDistance;								   // near plane center
-		mNpTopLeft = mNpCenter + (up * mNp_height / 2) - (right * mNp_width / 2);  // Top left corner of the near plane
-		mNpTopRight = mNpCenter + (up * mNp_height / 2) + (right * mNp_width / 2); // Top right corner of the near plane
-		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);  // Bottom left corner of the near plane
-		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2); // Bottom right corner of the near plane
+		// near plane
+		mNpCenter = mPosition + view * mNpDistance;								   
+		mNpTopLeft = mNpCenter + (up * mNp_height / 2) - (right * mNp_width / 2);  
+		mNpTopRight = mNpCenter + (up * mNp_height / 2) + (right * mNp_width / 2); 
+		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);  
+		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2); 
 
 		// Plane eq: Ax + By + Cz + D = 0
 		// Far plane
@@ -47,65 +50,54 @@ struct Frustum
 		mFplaneNormal.normalize();
 		mFplane.head(3) = mFplaneNormal;
 		mFplane[3] = _fpDistance;
-		mPlanes.push_back(std::make_pair(mFpCenter,  mFplane));
-		// std::cout << "Far Plane " << mFplane << "\n";
+		std::vector<Eigen::Vector3f> farVertex = {mFpTopRight, mFpTopLeft, mFpBotLeft, mFpBotRight};
+		std::shared_ptr<Facet> farFacet(new Facet(mFplane, farVertex));
+		mFacets["far"] = farFacet;
+
 		// Near plane
 		mNplaneNormal = mNpCenter - mFpCenter;
 		mNplaneNormal.normalize();
 		mNplane.head(3) = mNplaneNormal;
 		mNplane[3] = _npDistance;
-		mPlanes.push_back(std::make_pair(mNpCenter,mNplane));
-		// std::cout << "Near Plane " << mNplane << "\n";
+		std::vector<Eigen::Vector3f> nearVertex = {mNpTopRight, mNpTopLeft, mNpBotLeft, mNpBotRight};
+		std::shared_ptr<Facet> nearFacet(new Facet(mNplane, nearVertex));
+		mFacets["near"] = nearFacet;
 
 		// Up plane
 		mUpPlaneNormal = (mNpTopLeft - mFpTopLeft).cross(mNpTopRight - mFpTopLeft);
 		mUpPlaneNormal.normalize();
 		mUpPlane.head(3) = mUpPlaneNormal;
 		mUpPlane[3] = 0;
-		mPlanes.push_back(std::make_pair(mNpTopLeft,mUpPlane));
-		// std::cout << "Up Plane " << mUpPlane << "\n";
+		std::vector<Eigen::Vector3f> upVertex = {mNpTopRight, mNpTopLeft, mFpTopLeft, mFpTopRight};
+		std::shared_ptr<Facet> upFacet(new Facet(mUpPlane, upVertex));
+		mFacets["up"] = upFacet;
 
 		// Down plane
 		mDownPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpBotRight - mFpBotLeft);
 		mDownPlaneNormal.normalize();
 		mDownPlane.head(3) = mDownPlaneNormal;
 		mDownPlane[3] = 0;
-		mPlanes.push_back(std::make_pair(mNpBotLeft,mDownPlane));
-		// std::cout << "Down Plane " << mDownPlane << "\n";
+		std::vector<Eigen::Vector3f> downVertex = {mNpBotRight, mNpBotLeft, mFpBotLeft, mFpBotRight};
+		std::shared_ptr<Facet> downFacet(new Facet(mDownPlane, downVertex));
+		mFacets["down"] = downFacet;
 
 		// Right plane
 		mRightPlaneNormal = -(mNpBotRight - mFpBotRight).cross(mNpTopRight - mFpBotRight);
 		mRightPlaneNormal.normalize();
 		mRightPlane.head(3) = mRightPlaneNormal;
 		mRightPlane[3] = 0;
-		mPlanes.push_back(std::make_pair(mNpBotRight,mRightPlane));
-		// std::cout << "Right Plane " << mRightPlane << "\n";
+		std::vector<Eigen::Vector3f> rightVertex = {mNpBotRight, mNpTopRight, mFpTopRight, mFpBotRight};
+		std::shared_ptr<Facet> rightFacet(new Facet(mRightPlane, rightVertex));
+		mFacets["right"] = rightFacet;
 
 		// Left plane
 		mLeftPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpTopLeft - mFpBotLeft);
 		mLeftPlaneNormal.normalize();
 		mLeftPlane.head(3) = mLeftPlaneNormal;
 		mLeftPlane[3] = 0;
-		mPlanes.push_back(std::make_pair(mNpTopLeft,mLeftPlane));
-		// std::cout << "Left Plane " << mLeftPlane << "\n";
-
-		// Near plane edges
-		mEdges.push_back(std::make_pair(mNpBotLeft, mNpTopLeft));
-		mEdges.push_back(std::make_pair(mNpTopLeft, mNpTopRight));
-		mEdges.push_back(std::make_pair(mNpTopRight, mNpBotRight));
-		mEdges.push_back(std::make_pair(mNpBotRight, mNpBotLeft));
-
-		// Far plane edges
-		mEdges.push_back(std::make_pair(mFpBotLeft, mFpTopLeft));
-		mEdges.push_back(std::make_pair(mFpTopLeft, mFpTopRight));
-		mEdges.push_back(std::make_pair(mFpTopRight, mFpBotRight));
-		mEdges.push_back(std::make_pair(mFpBotRight, mFpBotLeft));
-
-		// Connecting corners edges
-		mEdges.push_back(std::make_pair(mNpBotLeft, mFpBotLeft));
-		mEdges.push_back(std::make_pair(mNpTopLeft, mFpTopLeft));
-		mEdges.push_back(std::make_pair(mNpTopRight, mFpTopRight));
-		mEdges.push_back(std::make_pair(mNpBotRight, mFpBotRight));
+		std::vector<Eigen::Vector3f> leftVertex = {mNpBotLeft, mNpTopLeft, mFpTopLeft, mFpBotLeft};
+		std::shared_ptr<Facet> leftFacet(new Facet(mLeftPlane, leftVertex));
+		mFacets["left"] = leftFacet;
 	}
 
 	int id;
@@ -113,6 +105,7 @@ struct Frustum
 	// Frustum pose
 	Eigen::Matrix4f mPose;
 	Eigen::Vector3f mPosition;
+
 	// FOV rad
 	float mHFov;
 	float mVFov;
@@ -121,11 +114,8 @@ struct Frustum
 	float mNpDistance;
 	float mFpDistance;
 
-	// Edges
-	std::vector<std::pair<Eigen::Vector3f, Eigen::Vector3f>> mEdges;
-
-	// Planes
-	std::vector<std::pair<Eigen::Vector3f,Eigen::Vector4f>> mPlanes;
+	// Facets
+	std::unordered_map<std::string, std::shared_ptr<Facet>> mFacets;
 
 	// Far plane
 	float mFp_height;

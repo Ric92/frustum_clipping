@@ -35,8 +35,8 @@ int main(int argc, char **argv)
     draw->frustum(f1);
 
     //First test
-    Eigen::Vector3f v1(0, 0, 0);
-    Eigen::Vector3f v2(8, 0, 0);
+    Eigen::Vector3f v1(2, 0, 2);
+    Eigen::Vector3f v2(4, 1, -2);
     draw->line(std::make_pair(v2, v1), "randomline");
     a.clipSegmentFrustum(f1, std::make_pair(v2, v1));
 
