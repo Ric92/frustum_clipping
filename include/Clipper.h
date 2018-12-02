@@ -10,7 +10,7 @@ class Clipper
 {
   public:
     Clipper();
-    
+
     void clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared_ptr<Frustum> _frustum2,
                             std::vector<Eigen::Vector3f> &_intersectionPoints);
 
@@ -22,6 +22,7 @@ class Clipper
     void clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment,
                             std::string _segmentName);
 
+    bool isInsidePolyhedron(std::unordered_map<std::string, std::shared_ptr<Facet>> _polyhedron, Eigen::Vector3f _point);
   private:
     Drawer<pcl::PointXYZRGB> *mDrawer = nullptr;
 };

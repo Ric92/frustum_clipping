@@ -46,10 +46,14 @@ struct Frustum
 
 		// Plane eq: Ax + By + Cz + D = 0
 		// Far plane
-		mFplaneNormal = mFpCenter - mNpCenter;
+		// mFplaneNormal = mFpCenter - mNpCenter;
+		// mFplaneNormal.normalize();
+		// mFplane.head(3) = mFplaneNormal;
+		// mFplane[3] = _fpDistance;
+		mFplaneNormal = (mFpTopRight-mFpTopLeft).cross(mFpBotRight-mFpTopLeft);
 		mFplaneNormal.normalize();
 		mFplane.head(3) = mFplaneNormal;
-		mFplane[3] = _fpDistance;
+		mFplane[3] = mFpTopRight.dot(mFplaneNormal);
 		std::vector<Eigen::Vector3f> farVertex = {mFpTopRight, mFpTopLeft, mFpBotLeft, mFpBotRight};
 		std::shared_ptr<Facet> farFacet(new Facet(-mFplane, farVertex));
 		mFacets["far"] = farFacet;
@@ -98,10 +102,6 @@ struct Frustum
 		std::vector<Eigen::Vector3f> leftVertex = {mNpBotLeft, mNpTopLeft, mFpTopLeft, mFpBotLeft};
 		std::shared_ptr<Facet> leftFacet(new Facet(mLeftPlane, leftVertex));
 		mFacets["left"] = leftFacet;
-
-		// Store bounds
-
-
 	}
 
 	int id;
