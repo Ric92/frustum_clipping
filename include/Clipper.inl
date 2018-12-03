@@ -4,7 +4,6 @@
 
 Clipper::Clipper()
 {
-    std::cout << "Clipper here \n";
     mDrawer = Drawer<pcl::PointXYZRGB>::get();
 }
 
@@ -43,7 +42,6 @@ bool Clipper::clipSegmentPlane(std::shared_ptr<Facet> _facet, std::pair<Eigen::V
     {
         auto intersection = _segment.first + t * (_segment.second - _segment.first);
         _output.push_back(intersection);
-        // }
     }
 }
 
@@ -70,11 +68,10 @@ void Clipper::clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Ei
             }
         }
     }
-    int i = 0;
+    int i;
     for (auto inter : intersectionPoints)
     {
-        mDrawer->point(inter, "Frustum_" + std::to_string(_frustum->id) + "_segment_" + _segmentName +
-                                  "_inter_" + std::to_string(i));
+        mDrawer->point(inter, _segmentName + std::to_string(i));
         i++;
     }
 }
@@ -84,11 +81,14 @@ bool Clipper::isInsidePolyhedron(std::unordered_map<std::string, std::shared_ptr
     for (auto facet : _polyhedron)
     {
         auto plane = facet.second->plane;
-        float epsilon = _point[0] * plane[0] + _point[1] * plane[1] + _point[2] * plane[2] + plane[3];
-        //std::cout << "Facet " + facet.first << " distance: " << epsilon << "\n";
-        if (epsilon > 0.01 && facet.first != "far")
+        float dist = distanceToPlane(plane, _point);
+
+        if (dist > 0.01 /*&& facet.first != "far"*/)
+        {
+            std::cout << "Facet " + facet.first << " distance: " << dist << "\n";
             //Point outside polyhedron
             return false;
+        }
     }
     return true;
 }
@@ -96,15 +96,28 @@ bool Clipper::isInsidePolyhedron(std::unordered_map<std::string, std::shared_ptr
 void Clipper::clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared_ptr<Frustum> _frustum2,
                                  std::vector<Eigen::Vector3f> &_intersectionPoints)
 {
-    // Check segments of frustum 2 vs planes of frustum1
+    // Intersections between facets of frustum 2 vs edges of frustum1
     int i;
     for (auto facet : _frustum2->mFacets)
     {
         std::vector<Eigen::Vector3f> vertex = facet.second->vertex;
-        clipSegmentFrustum(_frustum1,std::make_pair(vertex[0], vertex[1]),"Frustum"+std::to_string(_frustum1->id)+"_segment_1"+std::to_string(i));
-        clipSegmentFrustum(_frustum1,std::make_pair(vertex[1], vertex[2]),"Frustum"+std::to_string(_frustum1->id)+"_segment_2"+std::to_string(i));
-        clipSegmentFrustum(_frustum1,std::make_pair(vertex[2], vertex[3]),"Frustum"+std::to_string(_frustum1->id)+"_segment_3"+std::to_string(i));
-        clipSegmentFrustum(_frustum1,std::make_pair(vertex[3], vertex[0]),"Frustum"+std::to_string(_frustum1->id)+"_segment_4"+std::to_string(i));
+        std::string segmentName = "Frustum_" + std::to_string(_frustum1->id) + "_vs_frustum_" + std::to_string(_frustum2->id) + "_facet_" + facet.first;
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[0], vertex[1]), segmentName + "_segment_1" + std::to_string(i));
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[1], vertex[2]), segmentName + "_segment_2" + std::to_string(i));
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[2], vertex[3]), segmentName + "_segment_3" + std::to_string(i));
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[3], vertex[0]), segmentName + "_segment_4" + std::to_string(i));
+
         i++;
+    }
+    i = 0;
+    // Check frustum 1 vertices inside frustum 2
+    for (auto vert : _frustum1->mVertices)
+    {
+        if (isInsidePolyhedron(_frustum2->mFacets, vert))
+        {
+            std::string pointName = "Frustum_" + std::to_string(_frustum1->id) + "_vertex_" + "_inside_" + std::to_string(_frustum2->id) + std::to_string(i);
+            mDrawer->point(vert, pointName);
+            i++;
+        }
     }
 }

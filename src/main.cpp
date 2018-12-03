@@ -45,24 +45,24 @@ int main(int argc, char **argv)
     clip.clipFrustumFrustum(f1,f2,inter);
     clip.clipFrustumFrustum(f2,f1,inter);
     
-    //First test
-    Eigen::Vector3f v1(2, 0, 2);     //Right-Left line
-    Eigen::Vector3f v2(4, 1, -2);
+    // //First test
+    // Eigen::Vector3f v1(2, 0, 2);     //Right-Left line
+    // Eigen::Vector3f v2(4, 1, -2);
 
-    draw->line(std::make_pair(v2, v1), "randomline");
-    clip.clipSegmentFrustum(f1, std::make_pair(v2, v1),"randomline");
+    // draw->line(std::make_pair(v2, v1), "randomline");
+    // clip.clipSegmentFrustum(f1, std::make_pair(v2, v1),"randomline");
 
-    Eigen::Vector3f v3(2, 0, 2);        // Right-up line
-    Eigen::Vector3f v4(4, 4, -2);
+    // Eigen::Vector3f v3(2, 0, 2);        // Right-up line
+    // Eigen::Vector3f v4(4, 4, -2);
 
-    draw->line(std::make_pair(v3, v4), "randomline2");
-    clip.clipSegmentFrustum(f1, std::make_pair(v3, v4),"randomline2");
+    // draw->line(std::make_pair(v3, v4), "randomline2");
+    // clip.clipSegmentFrustum(f1, std::make_pair(v3, v4),"randomline2");
 
-    Eigen::Vector3f v5(4, 1, -2);        // Right-up line
-    Eigen::Vector3f v6(4, 4, -2);
+    // Eigen::Vector3f v5(4, 1, -2);        // Right-up line
+    // Eigen::Vector3f v6(4, 4, -2);
 
-    draw->line(std::make_pair(v5, v6), "randomline3");
-    clip.clipSegmentFrustum(f1, std::make_pair(v5, v6),"randomline3");
+    // draw->line(std::make_pair(v5, v6), "randomline3");
+    // clip.clipSegmentFrustum(f1, std::make_pair(v5, v6),"randomline3");
 
     // Eigen::Vector3f v1(0, 0, 0);     //Right-Left line
     // Eigen::Vector3f v2(8, 0, 0);
@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 
     // draw->line(std::make_pair(v5, v6), "randomline3");
     // clip.clipSegmentFrustum(f1, std::make_pair(v5, v6),"randomline3");
-
+    std::cout << "Clipping ended \n";
     bool end = true;
     while (end)
     {

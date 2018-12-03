@@ -62,6 +62,7 @@ inline void Drawer<PointType_>::point(Eigen::Vector3f _point, std::string _id)
 {
     auto point = eigenVector3fToPcl(_point);
     mViewer->addSphere(point, 0.05, 0.0, 0.0, 1.0, _id, 0);
+    std::cout << "[Drawer] Point: " << _point << "\n";
     mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------

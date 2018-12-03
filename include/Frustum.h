@@ -43,7 +43,7 @@ struct Frustum
 		mNpTopRight = mNpCenter + (up * mNp_height / 2) + (right * mNp_width / 2); 
 		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);  
 		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2); 
-
+		mVertices = {mFpTopLeft,mFpTopRight,mFpBotLeft,mFpBotRight,mNpTopLeft,mNpTopRight,mNpBotLeft,mNpBotRight};
 		// Plane eq: Ax + By + Cz + D = 0
 		// Far plane
 		// mFplaneNormal = mFpCenter - mNpCenter;
@@ -53,16 +53,16 @@ struct Frustum
 		mFplaneNormal = (mFpTopRight-mFpTopLeft).cross(mFpBotRight-mFpTopLeft);
 		mFplaneNormal.normalize();
 		mFplane.head(3) = mFplaneNormal;
-		mFplane[3] = mFpTopRight.dot(mFplaneNormal);
+		mFplane[3] = -mFpTopRight.dot(mFplaneNormal);
 		std::vector<Eigen::Vector3f> farVertex = {mFpTopRight, mFpTopLeft, mFpBotLeft, mFpBotRight};
-		std::shared_ptr<Facet> farFacet(new Facet(-mFplane, farVertex));
+		std::shared_ptr<Facet> farFacet(new Facet(mFplane, farVertex));
 		mFacets["far"] = farFacet;
 
 		// Near plane
 		mNplaneNormal = mNpCenter - mFpCenter;
 		mNplaneNormal.normalize();
 		mNplane.head(3) = mNplaneNormal;
-		mNplane[3] = _npDistance;
+		mNplane[3] = -mNpBotRight.dot(mNplaneNormal);
 		std::vector<Eigen::Vector3f> nearVertex = {mNpTopRight, mNpTopLeft, mNpBotLeft, mNpBotRight};
 		std::shared_ptr<Facet> nearFacet(new Facet(mNplane, nearVertex));
 		mFacets["near"] = nearFacet;
@@ -71,7 +71,7 @@ struct Frustum
 		mUpPlaneNormal = (mNpTopLeft - mFpTopLeft).cross(mNpTopRight - mFpTopLeft);
 		mUpPlaneNormal.normalize();
 		mUpPlane.head(3) = mUpPlaneNormal;
-		mUpPlane[3] = 0;
+		mUpPlane[3] = -mNpTopLeft.dot(mUpPlaneNormal);
 		std::vector<Eigen::Vector3f> upVertex = {mNpTopRight, mNpTopLeft, mFpTopLeft, mFpTopRight};
 		std::shared_ptr<Facet> upFacet(new Facet(mUpPlane, upVertex));
 		mFacets["up"] = upFacet;
@@ -80,7 +80,7 @@ struct Frustum
 		mDownPlaneNormal = -(mNpBotLeft - mFpBotLeft).cross(mNpBotRight - mFpBotLeft);
 		mDownPlaneNormal.normalize();
 		mDownPlane.head(3) = mDownPlaneNormal;
-		mDownPlane[3] = 0;
+		mDownPlane[3] = -mNpBotLeft.dot(mDownPlaneNormal);
 		std::vector<Eigen::Vector3f> downVertex = {mNpBotRight, mNpBotLeft, mFpBotLeft, mFpBotRight};
 		std::shared_ptr<Facet> downFacet(new Facet(mDownPlane, downVertex));
 		mFacets["down"] = downFacet;
@@ -89,7 +89,7 @@ struct Frustum
 		mRightPlaneNormal = -(mNpBotRight - mFpBotRight).cross(mNpTopRight - mFpBotRight);
 		mRightPlaneNormal.normalize();
 		mRightPlane.head(3) = mRightPlaneNormal;
-		mRightPlane[3] = 0;
+		mRightPlane[3] = -mNpBotRight.dot(mRightPlaneNormal);
 		std::vector<Eigen::Vector3f> rightVertex = {mNpBotRight, mNpTopRight, mFpTopRight, mFpBotRight};
 		std::shared_ptr<Facet> rightFacet(new Facet(mRightPlane, rightVertex));
 		mFacets["right"] = rightFacet;
@@ -98,7 +98,7 @@ struct Frustum
 		mLeftPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpTopLeft - mFpBotLeft);
 		mLeftPlaneNormal.normalize();
 		mLeftPlane.head(3) = mLeftPlaneNormal;
-		mLeftPlane[3] = 0;
+		mLeftPlane[3] = -mNpBotLeft.dot(mLeftPlaneNormal);
 		std::vector<Eigen::Vector3f> leftVertex = {mNpBotLeft, mNpTopLeft, mFpTopLeft, mFpBotLeft};
 		std::shared_ptr<Facet> leftFacet(new Facet(mLeftPlane, leftVertex));
 		mFacets["left"] = leftFacet;
@@ -120,6 +120,10 @@ struct Frustum
 
 	// Facets
 	std::unordered_map<std::string, std::shared_ptr<Facet>> mFacets;
+
+	//Vertex
+
+	std::vector<Eigen::Vector3f> mVertices;
 
 	// Far plane
 	float mFp_height;
