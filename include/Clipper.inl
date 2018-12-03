@@ -65,7 +65,7 @@ void Clipper::clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Ei
             //Check if points are inside frustum
             for (auto candidatePoint : newPoints)
             {
-                //if (isInsidePolyhedron(_frustum->mFacets, candidatePoint))
+                if (isInsidePolyhedron(_frustum->mFacets, candidatePoint))
                     intersectionPoints.push_back(candidatePoint);
             }
         }
