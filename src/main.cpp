@@ -35,8 +35,8 @@ int main(int argc, char **argv)
     draw->frustum(f1);
 
     Eigen::Matrix4f pose2;
-    pose2 << 1, 0, 0, 2,
-             0, 1, 0, 2,
+    pose2 << 1, 0, 0, 1,
+             0, 0.5, 0, 1,
              0, 0, 1, 2,
              0, 0, 0, 1;
     std::shared_ptr<Frustum> f2(new Frustum(2, pose2, 45, 45, 1, 5));
@@ -45,6 +45,18 @@ int main(int argc, char **argv)
     clip.clipFrustumFrustum(f1,f2,inter);
     clip.clipFrustumFrustum(f2,f1,inter);
     
+    std::vector<double> frustumPoints;
+
+    std::string v = "Intersection_point_";
+    int i = 0;
+    for(auto point: inter){
+        draw->point(point,v+std::to_string(i));
+        frustumPoints.push_back(point[0]);
+        frustumPoints.push_back(point[1]);
+        frustumPoints.push_back(point[2]);
+        i++;
+    }
+    // std::cout << frustum1->volume() << "\n";
     // //First test
     // Eigen::Vector3f v1(2, 0, 2);     //Right-Left line
     // Eigen::Vector3f v2(4, 1, -2);

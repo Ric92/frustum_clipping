@@ -8,23 +8,24 @@
 
 class Clipper
 {
-  public:
-    Clipper();
+public:
+  Clipper();
 
-    void clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared_ptr<Frustum> _frustum2,
-                            std::vector<Eigen::Vector3f> &_intersectionPoints);
+  void clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared_ptr<Frustum> _frustum2,
+                          std::vector<Eigen::Vector3f> &_intersectionPoints);
 
-    bool clipSegmentPlane(std::shared_ptr<Facet> _facet, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment,
-                          std::vector<Eigen::Vector3f> &_output);
+  bool clipSegmentPlane(std::shared_ptr<Facet> _facet, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment,
+                        std::vector<Eigen::Vector3f> &_output);
 
-    float distanceToPlane(Eigen::Vector4f _plane, Eigen::Vector3f _point);
+  float distanceToPlane(Eigen::Vector4f _plane, Eigen::Vector3f _point);
 
-    void clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment,
-                            std::string _segmentName);
+  void clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment,
+                          std::vector<Eigen::Vector3f> &_intersectionPoints);
 
-    bool isInsidePolyhedron(std::unordered_map<std::string, std::shared_ptr<Facet>> _polyhedron, Eigen::Vector3f _point);
-  private:
-    Drawer<pcl::PointXYZRGB> *mDrawer = nullptr;
+  bool isInsidePolyhedron(std::unordered_map<std::string, std::shared_ptr<Facet>> _polyhedron, Eigen::Vector3f _point);
+
+private:
+  Drawer<pcl::PointXYZRGB> *mDrawer = nullptr;
 };
 
 #include <Clipper.inl>

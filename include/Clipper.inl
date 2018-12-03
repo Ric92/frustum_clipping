@@ -52,9 +52,9 @@ float Clipper::distanceToPlane(Eigen::Vector4f _plane, Eigen::Vector3f _point)
 }
 
 //---------------------------------------------------------------------------------------------------------------------
-void Clipper::clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment, std::string _segmentName)
+void Clipper::clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment,
+                                 std::vector<Eigen::Vector3f> &_intersectionPoints)
 {
-    std::vector<Eigen::Vector3f> intersectionPoints;
     for (auto facet : _frustum->mFacets)
     {
         std::vector<Eigen::Vector3f> newPoints;
@@ -64,15 +64,9 @@ void Clipper::clipSegmentFrustum(std::shared_ptr<Frustum> _frustum, std::pair<Ei
             for (auto candidatePoint : newPoints)
             {
                 if (isInsidePolyhedron(_frustum->mFacets, candidatePoint))
-                    intersectionPoints.push_back(candidatePoint);
+                    _intersectionPoints.push_back(candidatePoint);
             }
         }
-    }
-    int i;
-    for (auto inter : intersectionPoints)
-    {
-        mDrawer->point(inter, _segmentName + std::to_string(i));
-        i++;
     }
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -83,9 +77,9 @@ bool Clipper::isInsidePolyhedron(std::unordered_map<std::string, std::shared_ptr
         auto plane = facet.second->plane;
         float dist = distanceToPlane(plane, _point);
 
-        if (dist > 0.01 /*&& facet.first != "far"*/)
+        if (dist > 0.01)
         {
-            std::cout << "Facet " + facet.first << " distance: " << dist << "\n";
+            // std::cout << "Facet " + facet.first << " distance: " << dist << "\n";
             //Point outside polyhedron
             return false;
         }
@@ -101,12 +95,11 @@ void Clipper::clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared
     for (auto facet : _frustum2->mFacets)
     {
         std::vector<Eigen::Vector3f> vertex = facet.second->vertex;
-        std::string segmentName = "Frustum_" + std::to_string(_frustum1->id) + "_vs_frustum_" + std::to_string(_frustum2->id) + "_facet_" + facet.first;
-        clipSegmentFrustum(_frustum1, std::make_pair(vertex[0], vertex[1]), segmentName + "_segment_1" + std::to_string(i));
-        clipSegmentFrustum(_frustum1, std::make_pair(vertex[1], vertex[2]), segmentName + "_segment_2" + std::to_string(i));
-        clipSegmentFrustum(_frustum1, std::make_pair(vertex[2], vertex[3]), segmentName + "_segment_3" + std::to_string(i));
-        clipSegmentFrustum(_frustum1, std::make_pair(vertex[3], vertex[0]), segmentName + "_segment_4" + std::to_string(i));
-
+        //std::string segmentName = "Frustum_" + std::to_string(_frustum1->id) + "_vs_frustum_" + std::to_string(_frustum2->id) + "_facet_" + facet.first;
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[0], vertex[1]), _intersectionPoints);
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[1], vertex[2]), _intersectionPoints);
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[2], vertex[3]), _intersectionPoints);
+        clipSegmentFrustum(_frustum1, std::make_pair(vertex[3], vertex[0]), _intersectionPoints);
         i++;
     }
     i = 0;
@@ -115,9 +108,10 @@ void Clipper::clipFrustumFrustum(std::shared_ptr<Frustum> _frustum1, std::shared
     {
         if (isInsidePolyhedron(_frustum2->mFacets, vert))
         {
-            std::string pointName = "Frustum_" + std::to_string(_frustum1->id) + "_vertex_" + "_inside_" + std::to_string(_frustum2->id) + std::to_string(i);
-            mDrawer->point(vert, pointName);
-            i++;
+            _intersectionPoints.push_back(vert);
+            //std::string pointName = "Frustum_" + std::to_string(_frustum1->id) + "_vertex_" + "_inside_" + std::to_string(_frustum2->id) + std::to_string(i);
+            //mDrawer->point(vert, pointName);
+            //i++;
         }
     }
 }
