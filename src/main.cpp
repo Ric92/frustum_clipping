@@ -18,8 +18,6 @@
 #include <pcl/filters/frustum_culling.h>
 #include <pcl/surface/convex_hull.h>
 
-
-#include "Clipper.h"
 #include "Drawer.h"
 #include "Frustum.h"
 
@@ -27,25 +25,26 @@ int main(int argc, char **argv)
 {
     Drawer<pcl::PointXYZRGB>::init();
     auto draw = Drawer<pcl::PointXYZRGB>::get();
-    Clipper clip;
+    //Clipper clip;
     Eigen::Matrix4f pose1;
     pose1 << 1, 0, 0, 0,
         0, 1, 0, 0,
         0, 0, 1, 0,
         0, 0, 0, 1;
     std::shared_ptr<Frustum> f1(new Frustum(1, pose1, 45, 45, 1, 5));
-    draw->frustum(f1);
-
     Eigen::Matrix4f pose2;
     pose2 << 1, 0, 0, 1,
         0, 0.5, 0, 1,
         0, 0, 1, 2,
         0, 0, 0, 1;
     std::shared_ptr<Frustum> f2(new Frustum(2, pose2, 45, 45, 1, 5));
-    draw->frustum(f2);
+
+    draw->polyhedron(f1->id,f1->mPosition,f1->getFacets());
+    draw->polyhedron(f2->id,f2->mPosition,f2->getFacets());
+
     std::vector<Eigen::Vector3f> inter;
-    clip.clipFrustumFrustum(f1, f2, inter);
-    clip.clipFrustumFrustum(f2, f1, inter);
+    f2->clipConvexPolyhedron(f1,inter);
+    
 
     std::vector<double> frustumPoints;
     // Create a Convex Hull
@@ -73,7 +72,10 @@ int main(int argc, char **argv)
 
     std::cout << "Convex hull has: " << cloud_hull->points.size() << " data points." << std::endl;
     std::cout << "Convex hull has: " << chull.getTotalVolume() << " m³." << std::endl;
-    // std::cout << frustum1->volume() << "\n";
+    //std::cout << frustum1->volume() << "\n";
+
+
+
     // //First test
     // Eigen::Vector3f v1(2, 0, 2);     //Right-Left line
     // Eigen::Vector3f v2(4, 1, -2);

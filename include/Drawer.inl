@@ -66,21 +66,20 @@ inline void Drawer<PointType_>::point(Eigen::Vector3f _point, std::string _id)
 }
 //---------------------------------------------------------------------------------------------------------------------
 template <typename PointType_>
-inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
+inline void Drawer<PointType_>::polyhedron(int _id, Eigen::Vector3f _position, std::unordered_map<std::string, std::shared_ptr<Facet>> _facets)
 {
-    // Draw frustum pose
-    mViewer->addCoordinateSystem(1.0, _frustum->mPosition[0], _frustum->mPosition[1],
-                                 _frustum->mPosition[2], "Frustum_" + std::to_string(_frustum->id));
+    // Draw polyhedron pose
+    mViewer->addCoordinateSystem(1.0, _position[0], _position[1],_position[2], "Frustum_" + std::to_string(_id));
 
     // Draw edges
-    for (auto facet : _frustum->mFacets)
+    for (auto facet : _facets)
     {
-        std::string facetId = "Frustum_" + std::to_string(_frustum->id) + "_facet_" + facet.first;
+        std::string facetId = "Poly_" + std::to_string(_id) + "_facet_" + facet.first;
         line(std::make_pair(facet.second->vertex[0], facet.second->vertex[1]), facetId + std::to_string(0));
         line(std::make_pair(facet.second->vertex[1], facet.second->vertex[2]), facetId + std::to_string(1));
         line(std::make_pair(facet.second->vertex[2], facet.second->vertex[3]), facetId + std::to_string(2));
         line(std::make_pair(facet.second->vertex[3], facet.second->vertex[0]), facetId + std::to_string(3));
-        std::cout << "Facet " + facet.first <<" plane= " << facet.second->plane << "\n";
+        // std::cout << "Facet " + facet.first <<" plane= " << facet.second->plane << "\n";
     }
 
     // Draw plane normals
@@ -93,34 +92,17 @@ inline void Drawer<PointType_>::frustum(std::shared_ptr<Frustum> _frustum)
     Eigen::Vector3f left;
     left = _frustum->mLeftPlaneNormal;
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft + up),
-                     1.0, 0.0, 0.0, "up_" + std::to_string(_frustum->id));
+                     1.0, 0.0, 0.0, "up_" + std::to_string(_id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight), eigenVector3fToPcl(_frustum->mFpBotRight + down),
-                     1.0, 0.0, 0.0, "down_" + std::to_string(_frustum->id));
+                     1.0, 0.0, 0.0, "down_" + std::to_string(_id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopRight), eigenVector3fToPcl(_frustum->mFpTopRight + right),
-                     0.0, 0.0, 1.0, "right_" + std::to_string(_frustum->id));
+                     0.0, 0.0, 1.0, "right_" + std::to_string(_id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft +left),
-                     0.0, 0.0, 1.0, "left_" + std::to_string(_frustum->id));
+                     0.0, 0.0, 1.0, "left_" + std::to_string(_id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mFpCenter), eigenVector3fToPcl(_frustum->mFpCenter + _frustum->mFplaneNormal),
-                     0.0, 1.0, 0.0, "far_" + std::to_string(_frustum->id));
+                     0.0, 1.0, 0.0, "far_" + std::to_string(_id));
     mViewer->addLine(eigenVector3fToPcl(_frustum->mNpCenter), eigenVector3fToPcl(_frustum->mNpCenter + _frustum->mNplaneNormal),
-                     0.0, 1.0, 0.0, "near_" + std::to_string(_frustum->id));
-    // std::vector<Eigen::Vector3f> farPlane;
-    // farPlane.push_back(_frustum->mFpTopLeft);
-    // farPlane.push_back(_frustum->mFpTopRight);
-    // farPlane.push_back(_frustum->mFpBotLeft);
-    // farPlane.push_back(_frustum->mFpBotRight);
-
-    // std::vector<Eigen::Vector3f> nearPlane;
-    // nearPlane.push_back(_frustum->mNpTopLeft);
-    // nearPlane.push_back(_frustum->mNpTopRight);
-    // nearPlane.push_back(_frustum->mNpBotLeft);
-    // nearPlane.push_back(_frustum->mNpBotRight);
-
-    // plane(1, _frustum->mFplane, farPlane);
-
-    // plane(2, _frustum->mNplane, nearPlane);
-    // addPolygonMesh (const typename pcl::PointCloud< PointT >::ConstPtr &cloud, const std::vector< pcl::Vertices > &vertices, const std::string &id="polygon", int viewport=0)
-
+                     0.0, 1.0, 0.0, "near_" + std::to_string(_id));
     mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------
@@ -153,35 +135,4 @@ inline void Drawer<PointType_>::plane(int id, Eigen::Vector4f _plane, std::vecto
     poly.setContour(planePoints);
     mViewer->addPolygon(poly, 255, 0, 0, "Poligon" + std::to_string(id), 0);
     mViewer->spinOnce();
-}
-
-//---------------------------------------------------------------------------------------------------------------------
-template <typename PointType_>
-inline void Drawer<PointType_>::meshPlane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points)
-{
-
-    // bool pcl::visualization::PCLVisualizer::addPolygonMesh 	( 	const typename pcl::PointCloud< PointT >::ConstPtr &  	cloud,
-    // 	const std::vector< pcl::Vertices > &  	vertices,
-    // 	const std::string &  	id = "polygon",
-    // 	int  	viewport = 0
-    // )
-    // std::vector<pcl::Vertices> planeVertex;
-    // pcl::Vertices v;
-    // pcl::PointCloud<pcl::PointXYZRGB>::Ptr planePoints= typename pcl::PointCloud<pcl::PointXYZRGB>::Ptr(new pcl::PointCloud<pcl::PointXYZRGB>());;
-    // unsigned int i = 0;
-    // for (auto point : _points)
-    // {
-    //     planePoints->push_back(eigenVector3fToPcl(point));
-    //     v.vertices.push_back(i);
-    //     i++;
-    // }
-    // planeVertex.push_back(v);
-
-    // pcl::ConvexHull<pcl::PointXYZRGB> cHull;
-    // cHull.setInputCloud(planePoints);
-
-    // cHull.reconstruct(*hull,)
-    // // mViewer->addPolygonMesh(planePoints,planeVertex,"PolMesh"+std::to_string(id),0);
-
-    // mViewer->spinOnce();
 }

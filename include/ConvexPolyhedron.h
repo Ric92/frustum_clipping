@@ -1,8 +1,7 @@
-#ifndef CONVEX_POLYHEDRON_H_
-#define CONVEX_POLYHEDRON_H_
+#ifndef CONVEXPOLYHEDRON_H_
+#define CONVEXPOLYHEDRON_H_
 
 #include <Eigen/Eigen>
-#include "Frustum.h"
 #include "Facet.h"
 
 class ConvexPolyhedron
@@ -11,11 +10,14 @@ public:
   ConvexPolyhedron();
 
   std::unordered_map<std::string, std::shared_ptr<Facet>> getFacets();
-  std::vector<Eigen::Vector3f> getVertices();
+  void setFacets(std::unordered_map<std::string, std::shared_ptr<Facet>> _facets);
 
-private:
+  std::vector<Eigen::Vector3f> getVertices();
+  void setVertices(std::vector<Eigen::Vector3f> _vertices);
+  
   void clipConvexPolyhedron(std::shared_ptr<ConvexPolyhedron> _convexPolyhedron, std::vector<Eigen::Vector3f> &_intersectionPoints);
 
+private:
   bool clipSegmentFacets(std::unordered_map<std::string, std::shared_ptr<Facet>> _polyhedronFacets,
                          std::pair<Eigen::Vector3f, Eigen::Vector3f> _segment, std::vector<Eigen::Vector3f> &_output);
 
@@ -33,4 +35,4 @@ private:
 
 #include <ConvexPolyhedron.inl>
 
-#endif // CONVEX_POLYHEDRON_H_
+#endif // CONVEXPOLYHEDRON_H_
