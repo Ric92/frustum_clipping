@@ -48,10 +48,6 @@ class Frustum : public ConvexPolyhedron
 		mVertices = {mFpTopLeft, mFpTopRight, mFpBotLeft, mFpBotRight, mNpTopLeft, mNpTopRight, mNpBotLeft, mNpBotRight};
 		// Plane eq: Ax + By + Cz + D = 0
 		// Far plane
-		// mFplaneNormal = mFpCenter - mNpCenter;
-		// mFplaneNormal.normalize();
-		// mFplane.head(3) = mFplaneNormal;
-		// mFplane[3] = _fpDistance;
 		mFplaneNormal = (mFpTopRight - mFpTopLeft).cross(mFpBotRight - mFpTopLeft);
 		mFplaneNormal.normalize();
 		mFplane.head(3) = mFplaneNormal;
@@ -104,7 +100,7 @@ class Frustum : public ConvexPolyhedron
 		std::vector<Eigen::Vector3f> leftVertex = {mNpBotLeft, mNpTopLeft, mFpTopLeft, mFpBotLeft};
 		std::shared_ptr<Facet> leftFacet(new Facet(mLeftPlane, leftVertex));
 		mFacets["left"] = leftFacet;
-		
+
 		setFacets(mFacets);
 		setVertices(mVertices);
 
@@ -115,6 +111,8 @@ class Frustum : public ConvexPolyhedron
 	}
 
 	int id;
+
+	float mVolume;
 
 	// Frustum pose
 	Eigen::Matrix4f mPose;

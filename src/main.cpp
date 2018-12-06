@@ -43,8 +43,8 @@ int main(int argc, char **argv)
     draw->polyhedron(f2->id,f2->mPosition,f2->getFacets());
 
     std::vector<Eigen::Vector3f> inter;
-    f2->clipConvexPolyhedron(f1,inter);
-    
+    f1->clipConvexPolyhedron(f2,inter);
+    std::cout << "Number of intersection points: " << inter.size() << "\n";
 
     std::vector<double> frustumPoints;
     // Create a Convex Hull
@@ -59,6 +59,7 @@ int main(int argc, char **argv)
         frustumPoints.push_back(point[0]);
         frustumPoints.push_back(point[1]);
         frustumPoints.push_back(point[2]);
+        std::cout << "Point: " << point[0] << " " << point[1] << " " << point[2] << " " << std::endl;
         pcl::PointXYZ newPoint;
         newPoint.x = point[0];
         newPoint.y = point[1];

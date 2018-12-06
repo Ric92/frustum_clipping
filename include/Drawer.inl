@@ -79,30 +79,10 @@ inline void Drawer<PointType_>::polyhedron(int _id, Eigen::Vector3f _position, s
         line(std::make_pair(facet.second->vertex[1], facet.second->vertex[2]), facetId + std::to_string(1));
         line(std::make_pair(facet.second->vertex[2], facet.second->vertex[3]), facetId + std::to_string(2));
         line(std::make_pair(facet.second->vertex[3], facet.second->vertex[0]), facetId + std::to_string(3));
-        // std::cout << "Facet " + facet.first <<" plane= " << facet.second->plane << "\n";
+        mViewer->addLine(eigenVector3fToPcl(facet.second->vertex[0]), eigenVector3fToPcl(facet.second->vertex[0] + 
+                        facet.second->plane.head(3)),1.0, 0.0, 0.0, facetId + "_normal");
+                        std::cout << "Facet " + facet.first + " normal: " << facet.second->plane << std::endl; 
     }
-
-    // Draw plane normals
-    Eigen::Vector3f up;
-    up = _frustum->mUpPlaneNormal;
-    Eigen::Vector3f down;
-    down = _frustum->mDownPlaneNormal;
-    Eigen::Vector3f right;
-    right = _frustum->mRightPlaneNormal;
-    Eigen::Vector3f left;
-    left = _frustum->mLeftPlaneNormal;
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft + up),
-                     1.0, 0.0, 0.0, "up_" + std::to_string(_id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpBotRight), eigenVector3fToPcl(_frustum->mFpBotRight + down),
-                     1.0, 0.0, 0.0, "down_" + std::to_string(_id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopRight), eigenVector3fToPcl(_frustum->mFpTopRight + right),
-                     0.0, 0.0, 1.0, "right_" + std::to_string(_id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpTopLeft), eigenVector3fToPcl(_frustum->mFpTopLeft +left),
-                     0.0, 0.0, 1.0, "left_" + std::to_string(_id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mFpCenter), eigenVector3fToPcl(_frustum->mFpCenter + _frustum->mFplaneNormal),
-                     0.0, 1.0, 0.0, "far_" + std::to_string(_id));
-    mViewer->addLine(eigenVector3fToPcl(_frustum->mNpCenter), eigenVector3fToPcl(_frustum->mNpCenter + _frustum->mNplaneNormal),
-                     0.0, 1.0, 0.0, "near_" + std::to_string(_id));
     mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------
