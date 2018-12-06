@@ -3,6 +3,8 @@
 
 #include <Eigen/Eigen>
 #include "Facet.h"
+#include <pcl/point_types.h>
+#include <pcl/surface/convex_hull.h>
 
 class ConvexPolyhedron
 {
@@ -14,8 +16,13 @@ public:
 
   std::vector<Eigen::Vector3f> getVertices();
   void setVertices(std::vector<Eigen::Vector3f> _vertices);
-  
+
+  float getVolume();
+  void setVolume(float _volume);
+
   void clipConvexPolyhedron(std::shared_ptr<ConvexPolyhedron> _convexPolyhedron, std::vector<Eigen::Vector3f> &_intersectionPoints);
+
+  float computeVolumeFromPoints(std::vector<Eigen::Vector3f> _points);
 
 private:
   bool clipSegmentFacets(std::unordered_map<std::string, std::shared_ptr<Facet>> _polyhedronFacets,
@@ -25,12 +32,15 @@ private:
 
   float distanceToPlane(Eigen::Vector4f _plane, Eigen::Vector3f _point);
 
-private:
   // Facets
   std::unordered_map<std::string, std::shared_ptr<Facet>> mFacets;
 
   //Vertex
   std::vector<Eigen::Vector3f> mVertices;
+
+  //Volume
+  float mVolume;
+  
 };
 
 #include <ConvexPolyhedron.inl>

@@ -22,6 +22,8 @@ class Frustum : public ConvexPolyhedron
 		mNpDistance = _npDistance;
 		mFpDistance = _fpDistance;
 
+		std::vector<Eigen::Vector3f> frustumVertices;
+
 		Eigen::Vector3f view = mPose.block(0, 0, 3, 1);  // view vector
 		Eigen::Vector3f up = mPose.block(0, 1, 3, 1);	// up vector
 		Eigen::Vector3f right = mPose.block(0, 2, 3, 1); // right vector
@@ -45,7 +47,11 @@ class Frustum : public ConvexPolyhedron
 		mNpTopRight = mNpCenter + (up * mNp_height / 2) + (right * mNp_width / 2);
 		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);
 		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2);
-		mVertices = {mFpTopLeft, mFpTopRight, mFpBotLeft, mFpBotRight, mNpTopLeft, mNpTopRight, mNpBotLeft, mNpBotRight};
+		frustumVertices = {mFpTopLeft, mFpTopRight, mFpBotLeft, mFpBotRight, mNpTopLeft, mNpTopRight, mNpBotLeft, mNpBotRight};
+		
+
+		std::unordered_map<std::string, std::shared_ptr<Facet>> frustumFacets;
+		
 		// Plane eq: Ax + By + Cz + D = 0
 		// Far plane
 		mFplaneNormal = (mFpTopRight - mFpTopLeft).cross(mFpBotRight - mFpTopLeft);
@@ -54,7 +60,7 @@ class Frustum : public ConvexPolyhedron
 		mFplane[3] = -mFpTopRight.dot(mFplaneNormal);
 		std::vector<Eigen::Vector3f> farVertex = {mFpTopRight, mFpTopLeft, mFpBotLeft, mFpBotRight};
 		std::shared_ptr<Facet> farFacet(new Facet(mFplane, farVertex));
-		mFacets["far"] = farFacet;
+		frustumFacets["far"] = farFacet;
 
 		// Near plane
 		mNplaneNormal = mNpCenter - mFpCenter;
@@ -63,7 +69,7 @@ class Frustum : public ConvexPolyhedron
 		mNplane[3] = -mNpBotRight.dot(mNplaneNormal);
 		std::vector<Eigen::Vector3f> nearVertex = {mNpTopRight, mNpTopLeft, mNpBotLeft, mNpBotRight};
 		std::shared_ptr<Facet> nearFacet(new Facet(mNplane, nearVertex));
-		mFacets["near"] = nearFacet;
+		frustumFacets["near"] = nearFacet;
 
 		// Up plane
 		mUpPlaneNormal = (mNpTopLeft - mFpTopLeft).cross(mNpTopRight - mFpTopLeft);
@@ -72,7 +78,7 @@ class Frustum : public ConvexPolyhedron
 		mUpPlane[3] = -mNpTopLeft.dot(mUpPlaneNormal);
 		std::vector<Eigen::Vector3f> upVertex = {mNpTopRight, mNpTopLeft, mFpTopLeft, mFpTopRight};
 		std::shared_ptr<Facet> upFacet(new Facet(mUpPlane, upVertex));
-		mFacets["up"] = upFacet;
+		frustumFacets["up"] = upFacet;
 
 		// Down plane
 		mDownPlaneNormal = -(mNpBotLeft - mFpBotLeft).cross(mNpBotRight - mFpBotLeft);
@@ -81,7 +87,7 @@ class Frustum : public ConvexPolyhedron
 		mDownPlane[3] = -mNpBotLeft.dot(mDownPlaneNormal);
 		std::vector<Eigen::Vector3f> downVertex = {mNpBotRight, mNpBotLeft, mFpBotLeft, mFpBotRight};
 		std::shared_ptr<Facet> downFacet(new Facet(mDownPlane, downVertex));
-		mFacets["down"] = downFacet;
+		frustumFacets["down"] = downFacet;
 
 		// Right plane
 		mRightPlaneNormal = -(mNpBotRight - mFpBotRight).cross(mNpTopRight - mFpBotRight);
@@ -90,7 +96,7 @@ class Frustum : public ConvexPolyhedron
 		mRightPlane[3] = -mNpBotRight.dot(mRightPlaneNormal);
 		std::vector<Eigen::Vector3f> rightVertex = {mNpBotRight, mNpTopRight, mFpTopRight, mFpBotRight};
 		std::shared_ptr<Facet> rightFacet(new Facet(mRightPlane, rightVertex));
-		mFacets["right"] = rightFacet;
+		frustumFacets["right"] = rightFacet;
 
 		// Left plane
 		mLeftPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpTopLeft - mFpBotLeft);
@@ -99,20 +105,18 @@ class Frustum : public ConvexPolyhedron
 		mLeftPlane[3] = -mNpBotLeft.dot(mLeftPlaneNormal);
 		std::vector<Eigen::Vector3f> leftVertex = {mNpBotLeft, mNpTopLeft, mFpTopLeft, mFpBotLeft};
 		std::shared_ptr<Facet> leftFacet(new Facet(mLeftPlane, leftVertex));
-		mFacets["left"] = leftFacet;
+		frustumFacets["left"] = leftFacet;
 
-		setFacets(mFacets);
-		setVertices(mVertices);
+		setFacets(frustumFacets);
+		setVertices(frustumVertices);
 
 		// Volume = (h/3) * (B1+B2+sqrt(B1+B2))
-		float nearArea = mNp_height*mNp_width;
-		float farArea =  mFp_height*mFp_width;
-		mVolume = ((mFpDistance-mNpDistance)/3)*(nearArea+farArea+sqrt(nearArea+farArea));
+		float nearArea = mNp_height * mNp_width;
+		float farArea = mFp_height * mFp_width;
+		setVolume(((mFpDistance - mNpDistance) / 3) * (nearArea + farArea + sqrt(nearArea + farArea)));
 	}
 
 	int id;
-
-	float mVolume;
 
 	// Frustum pose
 	Eigen::Matrix4f mPose;
@@ -125,13 +129,6 @@ class Frustum : public ConvexPolyhedron
 	// Plane distance
 	float mNpDistance;
 	float mFpDistance;
-
-	// Facets
-	std::unordered_map<std::string, std::shared_ptr<Facet>> mFacets;
-
-	//Vertex
-
-	std::vector<Eigen::Vector3f> mVertices;
 
 	// Far plane
 	float mFp_height;

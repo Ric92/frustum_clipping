@@ -81,7 +81,6 @@ inline void Drawer<PointType_>::polyhedron(int _id, Eigen::Vector3f _position, s
         line(std::make_pair(facet.second->vertex[3], facet.second->vertex[0]), facetId + std::to_string(3));
         mViewer->addLine(eigenVector3fToPcl(facet.second->vertex[0]), eigenVector3fToPcl(facet.second->vertex[0] + 
                         facet.second->plane.head(3)),1.0, 0.0, 0.0, facetId + "_normal");
-                        std::cout << "Facet " + facet.first + " normal: " << facet.second->plane << std::endl; 
     }
     mViewer->spinOnce();
 }

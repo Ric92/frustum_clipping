@@ -15,30 +15,12 @@ bool ConvexPolyhedron::clipSegmentFacets(std::unordered_map<std::string, std::sh
         Eigen::Vector3f planeNormal = facet.second->plane.head(3);
         Eigen::Vector4f plane = facet.second->plane;
         Eigen::Vector3f planeOrig = facet.second->vertex[0];
+
         float den = planeNormal.dot(segmentDirection);
-
-        if (den == 0)
-        {
-            // Segment is parallel to the plane
-            float d = distanceToPlane(plane, _segment.first);
-            if (d == 0)
-            {
-                // Segment coincident with plane
-                std::cerr << "Coincident segment to plane" << std::endl;
-            }
-            else if (d < 0)
-            {
-                //Segment outside frustum
-            }
-            else
-            {
-                // Segment inside frustum
-            }
-            return false;
-        }
-
         float num = planeNormal.dot(_segment.first - planeOrig);
+
         float t = -num / den;
+
         if (t > 0 && t < 1)
         {
             auto intersection = _segment.first + t * (_segment.second - _segment.first);
@@ -58,41 +40,41 @@ void ConvexPolyhedron::clipConvexPolyhedron(std::shared_ptr<ConvexPolyhedron> _c
     {
         std::vector<Eigen::Vector3f> candidatePoints;
         std::vector<Eigen::Vector3f> vertex = facet.second->vertex;
-        std::cout << "Clipping with facet: " << facet.first << std::endl;
-        clipSegmentFacets(convexPolyhedronFacets, std::make_pair(vertex[0], vertex[1]), candidatePoints);
-        clipSegmentFacets(convexPolyhedronFacets, std::make_pair(vertex[1], vertex[2]), candidatePoints);
-        clipSegmentFacets(convexPolyhedronFacets, std::make_pair(vertex[2], vertex[3]), candidatePoints);
-        clipSegmentFacets(convexPolyhedronFacets, std::make_pair(vertex[3], vertex[0]), candidatePoints);
-        // Check convex polyedron vertices inside actual polyhedron
+        for(int i = 0,j=1; i<vertex.size();i++,j++){
+            if(j>=vertex.size())
+                j=0;
+            clipSegmentFacets(convexPolyhedronFacets, std::make_pair(vertex[i], vertex[j]), candidatePoints);
+        }
+        //Check candidate points inside convex polyhedron
         for (auto point : candidatePoints)
         {
-            if (!isInsidePolyhedron(convexPolyhedronFacets, point))
+            if (isInsidePolyhedron(convexPolyhedronFacets, point))
             {
                 _intersectionPoints.push_back(point);
             }
         }
     }
-    std::cout << "Own vertices vs facets: " << _intersectionPoints.size() << "\n";
+    std::cout << std::endl << std::endl;
     // Intersections between actual polyhedron facets vs edges of convex polyedron
     for (auto facet : convexPolyhedronFacets)
     {
         std::vector<Eigen::Vector3f> candidatePoints;
         std::vector<Eigen::Vector3f> vertex = facet.second->vertex;
-        std::cout << "Clipping with facet: " << facet.first << std::endl;
-        clipSegmentFacets(mFacets, std::make_pair(vertex[0], vertex[1]), _intersectionPoints);
-        clipSegmentFacets(mFacets, std::make_pair(vertex[1], vertex[2]), _intersectionPoints);
-        clipSegmentFacets(mFacets, std::make_pair(vertex[2], vertex[3]), _intersectionPoints);
-        clipSegmentFacets(mFacets, std::make_pair(vertex[3], vertex[0]), _intersectionPoints);
-        // Check convex polyedron vertices inside actual polyhedron
+        for(int i = 0,j=1; i<vertex.size();i++,j++){
+            if(j>=vertex.size())
+                j=0;
+            clipSegmentFacets(mFacets, std::make_pair(vertex[i], vertex[j]), candidatePoints);
+        }
+        //Check candidate points inside actual polyhedron
         for (auto point : candidatePoints)
         {
-            if (!isInsidePolyhedron(mFacets, point))
+            if (isInsidePolyhedron(mFacets, point))
             {
                 _intersectionPoints.push_back(point);
             }
         }
     }
-    std::cout << "Own facets vs vertices: " << _intersectionPoints.size() << "\n";
+
     // Check convex polyedron vertices inside actual polyhedron
     for (auto vert : mVertices)
     {
@@ -101,6 +83,7 @@ void ConvexPolyhedron::clipConvexPolyhedron(std::shared_ptr<ConvexPolyhedron> _c
             _intersectionPoints.push_back(vert);
         }
     }
+
     // Check actual polyhedron vertices inside convex polyedron
     for (auto vert : _convexPolyhedron->getVertices())
     {
@@ -109,7 +92,6 @@ void ConvexPolyhedron::clipConvexPolyhedron(std::shared_ptr<ConvexPolyhedron> _c
             _intersectionPoints.push_back(vert);
         }
     }
-    std::cout << "Vertices inside: " << _intersectionPoints.size() << "\n";
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -120,13 +102,34 @@ bool ConvexPolyhedron::isInsidePolyhedron(std::unordered_map<std::string, std::s
         auto plane = facet.second->plane;
         float dist = distanceToPlane(plane, _point);
 
-        if (dist > -0.01) // TODO: Fixed value
+        if (dist > 0.01) // TODO: Fixed value
         {
             //Point outside polyhedron
             return false;
         }
     }
     return true;
+}
+//---------------------------------------------------------------------------------------------------------------------
+float ConvexPolyhedron::computeVolumeFromPoints(std::vector<Eigen::Vector3f> _points)
+{
+    // Create a Convex Hull
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_hull(new pcl::PointCloud<pcl::PointXYZ>);
+    pcl::ConvexHull<pcl::PointXYZ> chull;
+    chull.setComputeAreaVolume(true);
+    for (auto point : _points)
+    {
+        pcl::PointXYZ newPoint;
+        newPoint.x = point[0];
+        newPoint.y = point[1];
+        newPoint.z = point[2];
+        cloud_hull->push_back(newPoint);
+    }
+    chull.setInputCloud(cloud_hull);
+    chull.reconstruct(*cloud_hull);
+    // std::cout << "Convex hull has: " << cloud_hull->points.size() << " data points." << std::endl;
+
+    return chull.getTotalVolume();
 }
 
 //---------------------------------------------------------------------------------------------------------------------
@@ -155,4 +158,17 @@ void ConvexPolyhedron::setVertices(std::vector<Eigen::Vector3f> _vertices)
 std::vector<Eigen::Vector3f> ConvexPolyhedron::getVertices()
 {
     return mVertices;
+}
+//---------------------------------------------------------------------------------------------------------------------
+void ConvexPolyhedron::setVolume(float _volume)
+{
+    if (_volume > 0)
+        mVolume = _volume;
+    else
+        std::cerr << " Negative volume \n";
+}
+//---------------------------------------------------------------------------------------------------------------------
+float ConvexPolyhedron::getVolume()
+{
+    return mVolume;
 }
