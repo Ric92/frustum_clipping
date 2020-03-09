@@ -44,7 +44,6 @@ inline void Drawer<PointType_>::spinOnce()
 
     mViewer->spinOnce(10, true);
     std::this_thread::sleep_for(std::chrono::milliseconds(10));
-    cv::waitKey(10);
 }
 //---------------------------------------------------------------------------------------------------------------------
 template <typename PointType_>
