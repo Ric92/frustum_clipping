@@ -1,21 +1,22 @@
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 project(object_clipping)
-add_definitions(-std=c++11)
 
-#set(CMAKE_CXX_COMPILER /usr/bin/g++-5)
+
+#add_definitions(-std=c++11)
+
 
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 link_directories(${EIGEN3_LIBRARY_DIRS})
 add_definitions(${EIGEN3_DEFINITIONS})
 
-find_package(OpenCV 3.4 REQUIRED)
+find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
 add_definitions(${OpenCV_DEFINITIONS})
 
-find_package(PCL 1.9 REQUIRED)
+find_package(PCL 1.8 REQUIRED)
 include_directories(${PCL_INCLUDE_DIRS})
 link_directories(${PCL_LIBRARY_DIRS})
 add_definitions(${PCL_DEFINITIONS})

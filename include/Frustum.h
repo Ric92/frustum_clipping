@@ -4,9 +4,11 @@
 #include <utility>
 #include "Facet.h"
 #include <unordered_map>
+#include "ConvexPolyhedron.h"
 
-struct Frustum
+class Frustum : public ConvexPolyhedron
 {
+  public:
 	// _pose: Pose of Frustum
 	// _hfov,_vfov: Vertical and horizontal FOV in degrees
 	// _npDistance,fpDistance: Distance between pose and nearest and farest plane
@@ -20,9 +22,11 @@ struct Frustum
 		mNpDistance = _npDistance;
 		mFpDistance = _fpDistance;
 
-		Eigen::Vector3f view = mPose.block(0, 0, 3, 1);  // view vector   
-		Eigen::Vector3f up = mPose.block(0, 1, 3, 1);	// up vector     
-		Eigen::Vector3f right = mPose.block(0, 2, 3, 1); // right vector 
+		std::vector<Eigen::Vector3f> frustumVertices;
+
+		Eigen::Vector3f view = mPose.block(0, 0, 3, 1);  // view vector
+		Eigen::Vector3f up = mPose.block(0, 1, 3, 1);	// up vector
+		Eigen::Vector3f right = mPose.block(0, 2, 3, 1); // right vector
 		mPosition = mPose.block(0, 3, 3, 1);			 // Frustum position
 
 		mNp_height = float(2 * tan(mVFov / 2) * mNpDistance);
@@ -31,32 +35,32 @@ struct Frustum
 		mFp_width = float(2 * tan(mHFov / 2) * mFpDistance);
 
 		// far plane
-		mFpCenter = mPosition + view * mFpDistance;								   
-		mFpTopLeft = mFpCenter + (up * mFp_height / 2) - (right * mFp_width / 2);  
-		mFpTopRight = mFpCenter + (up * mFp_height / 2) + (right * mFp_width / 2); 
-		mFpBotLeft = mFpCenter - (up * mFp_height / 2) - (right * mFp_width / 2);  
-		mFpBotRight = mFpCenter - (up * mFp_height / 2) + (right * mFp_width / 2); 
+		mFpCenter = mPosition + view * mFpDistance;
+		mFpTopLeft = mFpCenter + (up * mFp_height / 2) - (right * mFp_width / 2);
+		mFpTopRight = mFpCenter + (up * mFp_height / 2) + (right * mFp_width / 2);
+		mFpBotLeft = mFpCenter - (up * mFp_height / 2) - (right * mFp_width / 2);
+		mFpBotRight = mFpCenter - (up * mFp_height / 2) + (right * mFp_width / 2);
 
 		// near plane
-		mNpCenter = mPosition + view * mNpDistance;								   
-		mNpTopLeft = mNpCenter + (up * mNp_height / 2) - (right * mNp_width / 2);  
-		mNpTopRight = mNpCenter + (up * mNp_height / 2) + (right * mNp_width / 2); 
-		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);  
-		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2); 
-		mVertices = {mFpTopLeft,mFpTopRight,mFpBotLeft,mFpBotRight,mNpTopLeft,mNpTopRight,mNpBotLeft,mNpBotRight};
+		mNpCenter = mPosition + view * mNpDistance;
+		mNpTopLeft = mNpCenter + (up * mNp_height / 2) - (right * mNp_width / 2);
+		mNpTopRight = mNpCenter + (up * mNp_height / 2) + (right * mNp_width / 2);
+		mNpBotLeft = mNpCenter - (up * mNp_height / 2) - (right * mNp_width / 2);
+		mNpBotRight = mNpCenter - (up * mNp_height / 2) + (right * mNp_width / 2);
+		frustumVertices = {mFpTopLeft, mFpTopRight, mFpBotLeft, mFpBotRight, mNpTopLeft, mNpTopRight, mNpBotLeft, mNpBotRight};
+		
+
+		std::unordered_map<std::string, std::shared_ptr<Facet>> frustumFacets;
+		
 		// Plane eq: Ax + By + Cz + D = 0
 		// Far plane
-		// mFplaneNormal = mFpCenter - mNpCenter;
-		// mFplaneNormal.normalize();
-		// mFplane.head(3) = mFplaneNormal;
-		// mFplane[3] = _fpDistance;
-		mFplaneNormal = (mFpTopRight-mFpTopLeft).cross(mFpBotRight-mFpTopLeft);
+		mFplaneNormal = (mFpTopRight - mFpTopLeft).cross(mFpBotRight - mFpTopLeft);
 		mFplaneNormal.normalize();
 		mFplane.head(3) = mFplaneNormal;
 		mFplane[3] = -mFpTopRight.dot(mFplaneNormal);
 		std::vector<Eigen::Vector3f> farVertex = {mFpTopRight, mFpTopLeft, mFpBotLeft, mFpBotRight};
 		std::shared_ptr<Facet> farFacet(new Facet(mFplane, farVertex));
-		mFacets["far"] = farFacet;
+		frustumFacets["far"] = farFacet;
 
 		// Near plane
 		mNplaneNormal = mNpCenter - mFpCenter;
@@ -65,7 +69,7 @@ struct Frustum
 		mNplane[3] = -mNpBotRight.dot(mNplaneNormal);
 		std::vector<Eigen::Vector3f> nearVertex = {mNpTopRight, mNpTopLeft, mNpBotLeft, mNpBotRight};
 		std::shared_ptr<Facet> nearFacet(new Facet(mNplane, nearVertex));
-		mFacets["near"] = nearFacet;
+		frustumFacets["near"] = nearFacet;
 
 		// Up plane
 		mUpPlaneNormal = (mNpTopLeft - mFpTopLeft).cross(mNpTopRight - mFpTopLeft);
@@ -74,7 +78,7 @@ struct Frustum
 		mUpPlane[3] = -mNpTopLeft.dot(mUpPlaneNormal);
 		std::vector<Eigen::Vector3f> upVertex = {mNpTopRight, mNpTopLeft, mFpTopLeft, mFpTopRight};
 		std::shared_ptr<Facet> upFacet(new Facet(mUpPlane, upVertex));
-		mFacets["up"] = upFacet;
+		frustumFacets["up"] = upFacet;
 
 		// Down plane
 		mDownPlaneNormal = -(mNpBotLeft - mFpBotLeft).cross(mNpBotRight - mFpBotLeft);
@@ -83,7 +87,7 @@ struct Frustum
 		mDownPlane[3] = -mNpBotLeft.dot(mDownPlaneNormal);
 		std::vector<Eigen::Vector3f> downVertex = {mNpBotRight, mNpBotLeft, mFpBotLeft, mFpBotRight};
 		std::shared_ptr<Facet> downFacet(new Facet(mDownPlane, downVertex));
-		mFacets["down"] = downFacet;
+		frustumFacets["down"] = downFacet;
 
 		// Right plane
 		mRightPlaneNormal = -(mNpBotRight - mFpBotRight).cross(mNpTopRight - mFpBotRight);
@@ -92,7 +96,7 @@ struct Frustum
 		mRightPlane[3] = -mNpBotRight.dot(mRightPlaneNormal);
 		std::vector<Eigen::Vector3f> rightVertex = {mNpBotRight, mNpTopRight, mFpTopRight, mFpBotRight};
 		std::shared_ptr<Facet> rightFacet(new Facet(mRightPlane, rightVertex));
-		mFacets["right"] = rightFacet;
+		frustumFacets["right"] = rightFacet;
 
 		// Left plane
 		mLeftPlaneNormal = (mNpBotLeft - mFpBotLeft).cross(mNpTopLeft - mFpBotLeft);
@@ -101,7 +105,15 @@ struct Frustum
 		mLeftPlane[3] = -mNpBotLeft.dot(mLeftPlaneNormal);
 		std::vector<Eigen::Vector3f> leftVertex = {mNpBotLeft, mNpTopLeft, mFpTopLeft, mFpBotLeft};
 		std::shared_ptr<Facet> leftFacet(new Facet(mLeftPlane, leftVertex));
-		mFacets["left"] = leftFacet;
+		frustumFacets["left"] = leftFacet;
+
+		setFacets(frustumFacets);
+		setVertices(frustumVertices);
+
+		// Volume = (h/3) * (B1+B2+sqrt(B1+B2))
+		float nearArea = mNp_height * mNp_width;
+		float farArea = mFp_height * mFp_width;
+		setVolume(((mFpDistance - mNpDistance) / 3) * (nearArea + farArea + sqrt(nearArea + farArea)));
 	}
 
 	int id;
@@ -117,13 +129,6 @@ struct Frustum
 	// Plane distance
 	float mNpDistance;
 	float mFpDistance;
-
-	// Facets
-	std::unordered_map<std::string, std::shared_ptr<Facet>> mFacets;
-
-	//Vertex
-
-	std::vector<Eigen::Vector3f> mVertices;
 
 	// Far plane
 	float mFp_height;
@@ -163,6 +168,7 @@ struct Frustum
 	Eigen::Vector4f mLeftPlane;
 	Eigen::Vector3f mLeftPlaneNormal;
 
+  public:
 	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 

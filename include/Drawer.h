@@ -7,8 +7,7 @@
 
 #include <chrono>
 #include <thread>
-
-#include "Frustum.h"
+#include "Facet.h"
 
 template <typename PointType_>
 class Drawer
@@ -20,11 +19,10 @@ public:
     return mSingleton;
   }
 
-  void frustum(std::shared_ptr<Frustum> _frustum);
+  void polyhedron(int _id, Eigen::Vector3f _position, std::unordered_map<std::string, std::shared_ptr<Facet>> _facets);
   void point(Eigen::Vector3f _point, std::string _id);
   void line(std::pair<Eigen::Vector3f, Eigen::Vector3f> _line, std::string _id);
   void plane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points);
-  void meshPlane(int id, Eigen::Vector4f _plane, std::vector<Eigen::Vector3f> _points);
   void spinOnce();
 
 private:
