@@ -30,18 +30,19 @@ class Cube : public ConvexPolyhedron {
         // v4----v1
         // |      |
         // v3----v2
-        Eigen::Vector3f v1(mWidth, mDeep, mHeigth);
-        Eigen::Vector3f v2(mWidth, mDeep, -mHeigth);
-        Eigen::Vector3f v3(-mWidth, mDeep, -mHeigth);
-        Eigen::Vector3f v4(-mWidth, mDeep, mHeigth);
+        Eigen::Vector3f v1(mWidth / 2, mDeep / 2, mHeigth / 2);
+        Eigen::Vector3f v2(mWidth / 2, mDeep / 2, -mHeigth / 2);
+        Eigen::Vector3f v3(-mWidth / 2, mDeep / 2, -mHeigth / 2);
+        Eigen::Vector3f v4(-mWidth / 2, mDeep / 2, mHeigth / 2);
         // front plane
         // v8----v5
         // |      |
         // v7----v6
-        Eigen::Vector3f v5(mWidth, -mDeep, mHeigth);
-        Eigen::Vector3f v6(mWidth, -mDeep, -mHeigth);
-        Eigen::Vector3f v7(-mWidth, -mDeep, -mHeigth);
-        Eigen::Vector3f v8(-mWidth, -mDeep, mHeigth);
+        Eigen::Vector3f v5(mWidth / 2, -mDeep / 2, mHeigth / 2);
+        Eigen::Vector3f v6(mWidth / 2, -mDeep / 2, -mHeigth / 2);
+        Eigen::Vector3f v7(-mWidth / 2, -mDeep / 2, -mHeigth / 2);
+        Eigen::Vector3f v8(-mWidth / 2, -mDeep / 2, mHeigth / 2);
+		
         v1 = mPose.block(0, 0, 3, 3) * v1 + mPose.block(0, 3, 3, 1);
         v2 = mPose.block(0, 0, 3, 3) * v2 + mPose.block(0, 3, 3, 1);
         v3 = mPose.block(0, 0, 3, 3) * v3 + mPose.block(0, 3, 3, 1);
