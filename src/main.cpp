@@ -42,7 +42,7 @@ int main(int argc, char **argv)
     draw->polyhedron(c2->id, c2->mPose.block(0, 3, 3, 1), c2->getFacets());
 
     std::vector<Eigen::Vector3f> inter;
-    c1->clipConvexPolyhedron(c2, inter);
+    c2->clipConvexPolyhedron(c1, inter);
     std::cout << "Number of intersection points: " << inter.size() << "\n";
 
     std::string v = "Intersection_point_";
