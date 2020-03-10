@@ -41,7 +41,15 @@ class Cube : public ConvexPolyhedron
         Eigen::Vector3f v6(mWidth, -mDeep, -mHeigth);
         Eigen::Vector3f v7(-mWidth, -mDeep, -mHeigth);
         Eigen::Vector3f v8(-mWidth, -mDeep, mHeigth);
-		
+		v1 = mPose.block(0, 0, 3, 3) * v1 + mPose.block(0, 3, 3, 1);
+		v2 = mPose.block(0, 0, 3, 3) * v2 + mPose.block(0, 3, 3, 1);
+		v3 = mPose.block(0, 0, 3, 3) * v3 + mPose.block(0, 3, 3, 1);
+		v4 = mPose.block(0, 0, 3, 3) * v4 + mPose.block(0, 3, 3, 1);
+		v5 = mPose.block(0, 0, 3, 3) * v5 + mPose.block(0, 3, 3, 1);
+		v6 = mPose.block(0, 0, 3, 3) * v6 + mPose.block(0, 3, 3, 1);
+		v7 = mPose.block(0, 0, 3, 3) * v7 + mPose.block(0, 3, 3, 1);
+		v8 = mPose.block(0, 0, 3, 3) * v8 + mPose.block(0, 3, 3, 1);
+
 		std::vector<Eigen::Vector3f> cubeVertices;
         cubeVertices = {v1,v2,v3,v4,v5,v6,v7,v8};
 		//                  TOP      BACK
@@ -88,7 +96,7 @@ class Cube : public ConvexPolyhedron
 		cubeFacets["top"] = topFacet;
 
 		// Down plane
-		mDownPlaneNormal = -(v2-v6).cross(v6-v7);
+		mDownPlaneNormal = (v2-v6).cross(v6-v7);
 		mDownPlaneNormal.normalize();
 		mDownPlane.head(3) = mDownPlaneNormal;
 		mDownPlane[3] = -v2.dot(mDownPlaneNormal);
@@ -97,7 +105,7 @@ class Cube : public ConvexPolyhedron
 		cubeFacets["down"] = downFacet;
 
 		// Right plane
-		mRightPlaneNormal = -(v1-v2).cross(v6-v2);
+		mRightPlaneNormal = (v1-v2).cross(v6-v2);
 		mRightPlaneNormal.normalize();
 		mRightPlane.head(3) = mRightPlaneNormal;
 		mRightPlane[3] = -v1.dot(mRightPlaneNormal);

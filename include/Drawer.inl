@@ -68,7 +68,7 @@ template <typename PointType_>
 inline void Drawer<PointType_>::polyhedron(int _id, Eigen::Vector3f _position, std::unordered_map<std::string, std::shared_ptr<Facet>> _facets)
 {
     // Draw polyhedron pose
-    mViewer->addCoordinateSystem(1.0, _position[0], _position[1],_position[2], "Frustum_" + std::to_string(_id));
+    mViewer->addCoordinateSystem(1.0, _position[0], _position[1],_position[2], "polyhedron_" + std::to_string(_id));
 
     // Draw edges
     for (auto facet : _facets)
@@ -79,7 +79,7 @@ inline void Drawer<PointType_>::polyhedron(int _id, Eigen::Vector3f _position, s
         line(std::make_pair(facet.second->vertex[2], facet.second->vertex[3]), facetId + std::to_string(2));
         line(std::make_pair(facet.second->vertex[3], facet.second->vertex[0]), facetId + std::to_string(3));
         mViewer->addLine(eigenVector3fToPcl(facet.second->vertex[0]), eigenVector3fToPcl(facet.second->vertex[0] + 
-                        facet.second->plane.head(3)),1.0, 0.0, 0.0, facetId + "_normal");
+                        facet.second->plane.head(3)),0.0, 1.0, 0.0, facetId + "_normal");
     }
     mViewer->spinOnce();
 }

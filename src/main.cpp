@@ -32,30 +32,30 @@ int main(int argc, char **argv)
     std::shared_ptr<Cube> c1(new Cube(1, pose1, 10, 10, 10));
 
     Eigen::Matrix4f pose2;
-    pose2 << 1, 0, 0, 1,
-        0, 0.5, 0, 1,
-        0, 0, 1, 2,
+    pose2 << 0.7071068, 0, 0.7071068, 1,
+        0, 1, 0, 1,
+        -0.7071068, 0, 0.7071068, 2,
         0, 0, 0, 1;
     std::shared_ptr<Cube> c2(new Cube(2, pose2, 15, 5, 10));
 
     draw->polyhedron(c1->id, c1->mPose.block(0, 3, 3, 1), c1->getFacets());
     draw->polyhedron(c2->id, c2->mPose.block(0, 3, 3, 1), c2->getFacets());
 
-    // std::vector<Eigen::Vector3f> inter;
-    // f1->clipConvexPolyhedron(f2, inter);
-    // std::cout << "Number of intersection points: " << inter.size() << "\n";
+    std::vector<Eigen::Vector3f> inter;
+    c1->clipConvexPolyhedron(c2, inter);
+    std::cout << "Number of intersection points: " << inter.size() << "\n";
 
-    // std::string v = "Intersection_point_";
-    // int i = 0;
-    // for (auto point : inter)
-    // {
-    //     draw->point(point, v + std::to_string(i));
-    //     i++;
-    // }
+    std::string v = "Intersection_point_";
+    int i = 0;
+    for (auto point : inter)
+    {
+        draw->point(point, v + std::to_string(i));
+        i++;
+    }
 
-    // std::cout << "Convex hull has " << f1->computeVolumeFromPoints(inter) << " m³ \n";
-    // std::cout << "Volume of frustum: " << f1->getVolume() << " m³ \n";
-    // std::cout << "% of volume intersected " << 100*(f1->computeVolumeFromPoints(inter)/f1->getVolume()) << "  \n";
+    std::cout << "Convex hull has " << c1->computeVolumeFromPoints(inter) << " m³ \n";
+    std::cout << "Volume of frustum: " << c1->getVolume() << " m³ \n";
+    std::cout << "% of volume intersected " << 100*(c1->computeVolumeFromPoints(inter)/c1->getVolume()) << "  \n";
 
     // std::cout << "Clipping ended \n";
     bool end = true;
