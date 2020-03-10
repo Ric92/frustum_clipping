@@ -2,10 +2,6 @@ cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 
 project(object_clipping)
 
-
-#add_definitions(-std=c++11)
-
-
 find_package(Eigen3 REQUIRED)
 include_directories(${EIGEN3_INCLUDE_DIRS})
 link_directories(${EIGEN3_LIBRARY_DIRS})

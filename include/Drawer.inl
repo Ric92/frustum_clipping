@@ -60,7 +60,7 @@ template <typename PointType_>
 inline void Drawer<PointType_>::point(Eigen::Vector3f _point, std::string _id)
 {
     auto point = eigenVector3fToPcl(_point);
-    mViewer->addSphere(point, 2, 0.0, 0.0, 1.0, _id, 0);
+    mViewer->addSphere(point, 0.09, 0.0, 0.0, 1.0, _id, 0);
     mViewer->spinOnce();
 }
 //---------------------------------------------------------------------------------------------------------------------
